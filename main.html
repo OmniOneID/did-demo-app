@@ -163,7 +163,7 @@
         </div>
 
         <div class="main" id="main-content">
-            <div class="info-box" id="info-box-mdl" style="display: none;" onclick="window.location.href='detail_mdl.html'">
+            <div class="info-box" id="info-box-mdl" style="display: none;" onclick="detailMdl()">
                 <img src="image/default_vc.png" alt="VC Image">
                 <div class="details">
                     <p class="title">OpenDID Mobile Driving License</p>
@@ -172,7 +172,7 @@
                 </div>
             </div>
             
-            <div class="info-box" id="info-box-nid" style="display: none;" onclick="window.location.href='detail_nid.html'">
+            <div class="info-box" id="info-box-nid" style="display: none;" onclick="detailNid()">
                 <img src="image/default_vc.png" alt="VC Image">
                 <div class="details">
                     <p class="title">OpenDID National ID</p>
@@ -210,6 +210,13 @@
         document.getElementById('user-name').textContent = 
             (getCookieValue('first_name') || 'User') + ' ' + (getCookieValue('last_name') || '');
 
+        function detailMdl() {
+            setPage('detail_mdl.html');
+        }
+
+        function detailNid() {
+            setPage('detail_nid.html');
+        }    
         function formatDate(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');

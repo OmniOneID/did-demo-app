@@ -131,13 +131,14 @@
         </div>
     </div>
     <script>
-        // window.onpopstate = function(e) { 
-        //     console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
-        // }
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
 
-        // var state = {};
-        // var url = location.origin + '/user_info';
-        // history.pushState(state, null, url);
+        var state = {};
+        var url = location.origin + '/user_info';
+        history.pushState(state, null, url);
+
         document.getElementById('save-button').addEventListener('click', function () {
             let firstName = document.getElementById('firstName').value.trim();
             let lastName = document.getElementById('lastName').value.trim();
