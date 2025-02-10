@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/config.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ed8202;
+            margin: 0;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            color: #000000;
+            margin: 5px 0 0 0;
+        }
+
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .info-box {
+            width: 90%;
+            background-color: #dddddd;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .info-box img {
+            display: block;
+            width: 60%;
+            height: auto;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .additional-text {
+            font-size: 18px;
+            color: #777;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+            background-color: #ffffff;
+        }
+
+        .button-container button {
+            width: 160px;
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        #ok-button {
+            color: #ffffff;
+            background-color: #ed8202;
+        }
+
+        #ok-button:hover {
+            background-color: #d37102;
+        }
+
+        #cancel-button {
+            color: #ed8202;
+            background-color: #ffffff;
+            border: 2px solid #ed8202;
+        }
+
+        #cancel-button:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <p class="title">Issuance Certificate Information</p>
+            <p class="subtitle">The certificate will be issued by issuer</p>
+        </div>
+        <div class="main">
+            <div class="info-box">
+                <img src="image/issuer_logo.png" alt="logo">
+                <p id="certificate-title"><strong>Mobile Driver License</strong></p>
+                <p>Issuance Application Date : 2025-01-15</p>
+            </div>
+            <p class="additional-text">The Identity certificate issued by Raon is stored In the certificate.</p>
+        </div>
+        <div class="button-container">
+            <button id="cancel-button">CANCEL</button>
+            <button id="ok-button">OK</button>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/issue_profile';
+        history.pushState(state, null, url);
+
+        function getCookieValue(name) {
+            const cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                const [key, value] = cookies[i].split('=');
+                if (key === name) return value;
+            }
+            return null;
+        }
+
+        window.onload = function() {
+            const issuerInitForProfile = getCookieValue('issuer_init_for_profile');
+            const userInitForProfile = getCookieValue('user_init_for_profile');
+            const certificateTitle = document.getElementById('certificate-title');
+
+            if (issuerInitForProfile === 'true') {
+                certificateTitle.innerHTML = "<strong>Mobile Driver License</strong>";
+            } else if (userInitForProfile === 'true') {
+                certificateTitle.innerHTML = "<strong>National ID</strong>";
+            }
+        };
+
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            const issuerInitForProfile = getCookieValue('issuer_init_for_profile');
+            const userInitForProfile = getCookieValue('user_init_for_profile');
+            const userInit = getCookieValue('user_init');
+            if (issuerInitForProfile === 'true') {
+                document.cookie = "issuer_init_for_profile=false; path=/; max-age=3600";
+                document.cookie = "issuer_init=false; path=/; max-age=3600";
+                setPage('main.html');
+            } else if (userInitForProfile === 'true') {
+                document.cookie = "user_init_for_profile=false; path=/; max-age=3600";
+                if(userInit === 'false')
+                    document.cookie = "user_init=false; path=/; max-age=3600";
+                setPage('main.html');
+            }
+            
+        });
+
+        document.getElementById('ok-button').addEventListener('click', function() {
+            const issuerInitForProfile = getCookieValue('issuer_init_for_profile');
+            const userInitForProfile = getCookieValue('user_init_for_profile');
+            if (issuerInitForProfile === 'true') {
+                document.cookie = "issuer_init_for_profile=false; path=/; max-age=3600";
+                setPage('pin_auth_vc.html');
+            } else if (userInitForProfile === 'true') {
+                document.cookie = "user_init_for_profile=false; path=/; max-age=3600";
+                setPage('vc_info.html');
+            }
+        });
+    </script>
+</body>
+</html>

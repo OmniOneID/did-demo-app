@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/titlebar.js"></script>
+    <script src="js/config.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .list-view {
+            width: 100%;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-item {
+            background-color: #ffffff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+        }
+
+        .list-item .subtitle {
+            font-size: 14px;
+            color: #666666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="titlebar-backkey-container"></div>
+        <ul class="list-view">
+            <li class="list-item">
+                <div class="title">TAS URL</div>
+                <div class="subtitle">http://localhost:8090</div>
+            </li>
+            <li class="list-item">
+                <div class="title">VERIFIER URL</div>
+                <div class="subtitle">http://localhost:8092</div>
+            </li>
+            <li class="list-item">
+                <div class="title">DID</div>
+                <div class="subtitle" id="did-display">Loading DID...</div>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/settings';
+        history.replaceState(state, null, url);
+
+        const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+        function generateBase58RandomString(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += base58Chars.charAt(Math.floor(Math.random() * base58Chars.length));
+            }
+            return result;
+        }
+
+        function setDIDCookie(didValue) {
+            document.cookie = `did=${didValue}; path=/; max-age=31536000`;
+        }
+
+        function getDIDFromCookie() {
+            const name = 'did=';
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return null;
+        }
+
+        window.addEventListener('DOMContentLoaded', function () {
+            let did = getDIDFromCookie();
+            if (!did) {
+                did = generateBase58RandomString(20);
+                setDIDCookie(did);
+            }
+            document.getElementById('did-display').textContent = `did:omn:${did}`;
+        });
+    </script>
+</body>
+</html>
