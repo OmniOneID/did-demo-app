@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const titlebarHTML = `
         <div class="titlebar">
             <div class="title">DID CA</div>
-            <div class="menu-button" onclick="window.location.href='settings.html'">
+            <div class="menu-button" onclick="settings()">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="titlebar">
             <div class="back-arrow" onclick="handleBack()">←</div>
             <div class="title">DID CA</div>
-            <div class="menu-button" onclick="window.location.href='settings.html'">
+            <div class="menu-button" onclick="settings()">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = titlebarWithBackKeyHTML;
     });
 });
+
+function settings() {
+    setPage('settings.html');
+}
 
 function handleBack() {
     if (history.length > 1) {
