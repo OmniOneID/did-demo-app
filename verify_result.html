@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/config.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            text-align: left;
+            margin-left: 20px;
+        }
+
+        .header .title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #ed8202;
+            margin: 0;
+        }
+
+        .header .subtitle {
+            font-size: 16px;
+            color: #000000;
+            margin: 5px 0 0 0;
+        }
+
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: #ffffff;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-box {
+            width: 90%;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .info-box img {
+            display: block;
+            width: 50%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+            width: 90%;
+            background-color: #ffffff;
+        }
+
+        .button-container button {
+            width: 90%;
+            padding: 15px;
+            font-size: 18px;
+            color: #ffffff;
+            background-color: #ed8202;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button-container button:hover {
+            background-color: #d37102;
+        }
+
+        #ok-button {
+            color: #ffffff;
+            background-color: #ed8202;
+        }
+
+        #ok-button:hover {
+            background-color: #d37102;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <p class="title">Success</p>
+            <p class="subtitle">You Successfully shared information with Opendid</p>
+        </div>
+        <div class="main">
+            <div class="info-box">
+                <img src="image/check.png" alt="logo">
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="ok-button">OK</button>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/verify_result';
+        history.pushState(state, null, url);
+
+        document.getElementById('ok-button').addEventListener('click', function() {
+            setPage('main.html');
+        });
+    </script>
+</body>
+</html>

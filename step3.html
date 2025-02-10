@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/config.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .header, .footer {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .main {
+            flex: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .main h1 {
+            font-size: 32px;
+            color: #000000;
+            line-height: 1.4;
+        }
+
+        .step-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .circle {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50%;
+            background-color: #ed8202;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .step-container:nth-child(1) .circle {
+            background-color: #ffffff;
+            color: #ed8202;
+            border: 2px solid #ed8202;
+        }
+
+        .step-container:nth-child(2) .circle {
+            background-color: #ffffff;
+            color: #ed8202;
+            border: 2px solid #ed8202;
+        }
+
+        .step-container:nth-child(3) .circle {
+            background-color: #ed8202;
+            color: #ffffff;
+        }
+
+        .step-body {
+            font-size: 14px;
+            color: #000000;
+            margin-left: 40px;
+        }
+
+        .step-body h2 {
+            font-size: 24px;
+        }
+
+        .step-container:first-child .step-body h2 {
+            color: #ed8202;
+        }
+
+        .step-container:nth-child(2) .step-body h2 {
+            color: #ed8202;
+        }
+
+        .step-container:nth-child(3) .step-body h2 {
+            color: #ed8202;
+        }
+
+        .step-line {
+            position: absolute;
+            width: 2px;
+            background-color: #e0e0e0;
+            top: 40px;
+            bottom: -40px;
+            left: 20px;
+            z-index: 0;
+        }
+
+        .step-line.active {
+            background-color: #ed8202;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .button-container button {
+            width: 90%;
+            padding: 15px;
+            font-size: 18px;
+            color: #ffffff;
+            background-color: #ed8202;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header"></div>
+        <div class="main">
+            <h1>OpenDID<br>Wallet</h1>
+        </div>
+        <div class="footer">
+            <div class="step-container">
+                <div class="circle">01</div>
+                <div class="step-line active"></div>
+                <div class="step-body">
+                  <h2>Step 1</h2>
+                  1. Register a demo user.<br>
+                  2. Set the wallet lock type.
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="circle">02</div>
+                <div class="step-line active"></div>
+                <div class="step-body">
+                  <h2>Step 2</h2>
+                  1. Register a PIN to create a signature key.<br>
+                  2. Register a user DID document.
+              </div>
+            </div>
+
+            <div class="step-container">
+                <div class="circle inactive">03</div>
+                <div class="step-line" style="visibility: hidden;"></div>
+                <div class="step-body">
+                  <h2>Step 3</h2>
+                  1. Authentication for signing user DID documents.
+              </div>
+            </div>
+
+            <div class="button-container">
+                <button id="next-button">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/step3';
+        history.pushState(state, null, url);
+
+        document.getElementById('next-button').addEventListener('click', function () {
+            setPage('pin_auth.html');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/titlebar.js"></script>
+    <script src="js/config.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            min-height: 10dvh;
+            background-color: #ed8202;
+            padding: 30px;
+        }
+
+        .header img {
+            width: 80px;
+            height: 80px;
+            margin-right: 60px;
+        }
+
+        .header .text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header .text span {
+            font-size: 20px;
+            color: #ffffff;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            align-items: center;
+        }
+
+        .no-certificate {
+            font-size: 18px;
+            color: gray;
+            text-align: center;
+            margin-top: auto;
+            margin-bottom: auto;
+            display: none;
+        }
+
+        .info-box {
+            width: 95%;
+            display: flex;
+            background-color: #dddddd;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .info-box img {
+            width: 80px;
+            height: 80px;
+            margin-right: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box .details {
+            text-align: left;
+        }
+
+        .info-box .details .title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info-box .details .validdate,
+        .info-box .details .issuedate {
+            font-size: 14px;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .button-container button {
+            width: 160px;
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        #scan-qr-button {
+            color: #ffffff;
+            background-color: #ed8202;
+        }
+
+        #scan-qr-button:hover {
+            background-color: #d37102;
+        }
+
+        #add-vc-button {
+            color: #ed8202;
+            background-color: #ffffff;
+            border: 2px solid #ed8202;
+        }
+
+        #add-vc-button:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="titlebar-container"></div>
+        <div class="header">
+            <img src="image/user_icon.png" alt="User Icon">
+            <div class="text">
+                <span>welcome back</span>
+                <span id="user-name"></span>
+            </div>
+        </div>
+
+        <div class="main" id="main-content">
+            <div class="info-box" id="info-box-mdl" style="display: none;" onclick="window.location.href='detail_mdl.html'">
+                <img src="image/default_vc.png" alt="VC Image">
+                <div class="details">
+                    <p class="title">OpenDID Mobile Driving License</p>
+                    <p class="validdate" id="valid-until-mdl"></p>
+                    <p class="issuedate" id="issued-date-mdl"></p>
+                </div>
+            </div>
+            
+            <div class="info-box" id="info-box-nid" style="display: none;" onclick="window.location.href='detail_nid.html'">
+                <img src="image/default_vc.png" alt="VC Image">
+                <div class="details">
+                    <p class="title">OpenDID National ID</p>
+                    <p class="validdate" id="valid-until-nid"></p>
+                    <p class="issuedate" id="issued-date-nid"></p>
+                </div>
+            </div>
+            
+            <h1 class="no-certificate" id="no-certificate">No certificate has been issued.</h1>
+        </div>
+        
+        <div class="button-container">
+            <button id="add-vc-button">ADD VC</button>
+            <button id="scan-qr-button">SCAN QR</button>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/main';
+        history.pushState(state, null, url);
+
+        function getCookieValue(name) {
+            const cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                const [key, value] = cookies[i].split('=');
+                if (key === name) return decodeURIComponent(value);
+            }
+            return null;
+        }
+        document.getElementById('user-name').textContent = 
+            (getCookieValue('first_name') || 'User') + ' ' + (getCookieValue('last_name') || '');
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateVCDisplay() {
+            const userInit = getCookieValue('user_init');
+            const issuerInit = getCookieValue('issuer_init');
+            const vcResult = getCookieValue('vc_result');
+            
+            const infoBoxMDL = document.getElementById('info-box-mdl');
+            const infoBoxNID = document.getElementById('info-box-nid');
+            const noCertificate = document.getElementById('no-certificate');
+            
+            const issuedDateMDL = document.getElementById('issued-date-mdl');
+            const validUntilMDL = document.getElementById('valid-until-mdl');
+            const issuedDateNID = document.getElementById('issued-date-nid');
+            const validUntilNID = document.getElementById('valid-until-nid');
+            
+            const currentDate = new Date();
+            const validUntilDate = new Date();
+            validUntilDate.setMonth(validUntilDate.getMonth() + 3);
+
+            let hasVC = false;
+
+            if (userInit === 'true' && vcResult === 'true') {
+                issuedDateNID.textContent = `issuanceDate : ${formatDate(currentDate)}`;
+                validUntilNID.textContent = `validUntil : ${formatDate(validUntilDate)}`;
+                infoBoxNID.style.display = 'flex';
+                hasVC = true;
+            }
+            
+            if (issuerInit === 'true' && vcResult === 'true') {
+                issuedDateMDL.textContent = `issuanceDate : ${formatDate(currentDate)}`;
+                validUntilMDL.textContent = `validUntil : ${formatDate(validUntilDate)}`;
+                infoBoxMDL.style.display = 'flex';
+                hasVC = true;
+            }
+
+            noCertificate.style.display = hasVC ? 'none' : 'block';
+        }
+
+        window.onload = updateVCDisplay;
+
+        document.getElementById('add-vc-button').addEventListener('click', function() {
+            //alert('개발중');
+            setPage('add_vc.html');
+        });
+
+        // document.getElementById('scan-qr-button').addEventListener('click', function() {
+        //     setPage('qr_scan_vc.html');
+        // });
+        document.getElementById('scan-qr-button').addEventListener('click', function() {
+            const issuerInit = getCookieValue('issuer_init');
+            const vcResult = getCookieValue('vc_result');
+
+            if (issuerInit === 'true' && vcResult === 'true') {
+                setPage('qr_scan_vp.html');
+            } else {
+                setPage('qr_scan_vc.html');
+            }
+        });
+    </script>
+</body>
+</html>
