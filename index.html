@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenDID Wallet</title>
-    <script src="js/config.js"></script>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -43,188 +44,214 @@
             align-items: center;
             text-align: center;
             padding: 20px;
+            flex-direction: column;
+            margin-bottom: 20px;
         }
 
         .main h1 {
             font-size: 32px;
             color: #000000;
             line-height: 1.4;
-        }
-
-        .step-container {
-            display: flex;
-            align-items: center;
-            position: relative;
-            margin: 20px 0;
-        }
-
-        .circle {
-            width: 40px !important;
-            height: 40px !important;
-            border-radius: 50%;
-            background-color: #ed8202;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            position: relative;
-            z-index: 1;
-            flex-shrink: 0;
-        }
-
-        .circle.inactive {
-            background-color: #e0e0e0;
-        }
-
-        .step-body {
-            font-size: 14px;
-            color: #000000;
-            margin-left: 40px;
-        }
-
-        .step-body h2 {
-            font-size: 24px;
-        }
-
-        .step-container:first-child .step-body h2 {
-            color: #ed8202;
-        }
-
-        .step-line {
-            position: absolute;
-            width: 2px;
-            background-color: #e0e0e0;
-            top: 40px;
-            bottom: -40px;
-            left: 20px;
-            z-index: 0;
-        }
-
-        .step-line.active {
-            background-color: #ed8202;
+            padding-bottom: 100px;
         }
 
         .button-container {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .button-container button {
-            width: 90%;
-            padding: 15px;
-            font-size: 18px;
-            color: #ffffff;
-            background-color: #ed8202;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: white;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            margin-left: 30px;
+            width: 100%;
             align-items: center;
+        }
+        .button-with-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .button-with-icon button {
+            width: 240px;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #ed8202;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .button-with-icon button:hover {
+            background-color: #cc6f00;
+            transform: scale(1.03);
+        }
+
+        .button-with-icon button:active {
+            transform: scale(0.98);
+        }
+        .guide-icon {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+
+        .guide-icon:hover {
+            opacity: 1;
+        }
+
+        /* Modal styles */
+        #md-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+        }
+        .md-modal-backdrop {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .md-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80%;
+            overflow-y: auto;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            font-family: Arial, sans-serif;
+        }
+        .md-close-button {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: #ed8202;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .md-modal-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+        .md-modal-content h1, h2, h3 {
             color: #ed8202;
-            z-index: 999;
         }
-
-        .progress-circle {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #ed8202;
-            border-top: 5px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
     </style>
 </head>
 <body>
     <div class="mobile-container">
-        <div class="loading-screen">
-            <div class="progress-circle"></div>
-            <p>setting up your wallet.</p>
-        </div>
-
-        <div class="header"></div>
         <div class="main">
-            <h1>OpenDID<br>Wallet</h1>
-        </div>
-        <div class="footer">
-
-            <div class="step-container">
-                <div class="circle">01</div>
-                <div class="step-line"></div>
-                <div class="step-body">
-                  <h2>Step 1</h2>
-                  1. Register a demo user.<br>
-                  2. Set the wallet lock type.
-                </div>
-            </div>
-
-            <div class="step-container">
-                <div class="circle inactive">02</div>
-                <div class="step-line"></div>
-                <div class="step-body">
-                  <h2>Step 2</h2>
-                  1. Register a PIN to create a signature key.<br>
-                  2. Register a user DID document.
-              </div>
-            </div>
-
-            <div class="step-container">
-                <div class="circle inactive">03</div>
-                <div class="step-line" style="visibility: hidden;"></div>
-                <div class="step-body">
-                  <h2>Step 3</h2>
-                  1. Authentication for signing user DID documents.
-              </div>
-            </div>
-
+            <h1>Demo App</h1>
             <div class="button-container">
-                <button id="next-button">Next</button>
+                <div class="button-with-icon">
+                    <button id="v1-button">v1.0.0.0</button>
+                    <img src="v1.0.0.0/guide/guide_icon.png" alt="guide" class="guide-icon" data-doc="v1.0.0.0/guide/">
+                </div>
+                <div class="button-with-icon">
+                    <button id="v2-button">v2.0.0.0</button>
+                    <img src="v2.0.0.0/guide/guide_icon.png" alt="guide" class="guide-icon" data-doc= "v2.0.0.0/guide/">
+                </div>
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div id="md-modal" class="md-modal-backdrop">
+        <div class="md-modal-content">
+          <select id="lang-select" style="position: absolute; top: 10px; left: 14px; font-size: 14px;">
+            <option value="en" selected>English</option>
+            <option value="ko">Korean</option>
+          </select>
+          <button class="md-close-button">Close ✕</button>
+          <div id="md-content" style="margin-top: 40px;"></div>
+        </div>
+      </div>
 
     <script>
         window.onpopstate = function(e) { 
             console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
         }
 
-        var state = {};
-        var url = location.origin + '/step1';
-        history.pushState(state, null, url);
+        // var state = {};
+        // var url = location.origin + '/demoapp';
+        // history.pushState(state, null, url);
 
-        window.addEventListener('DOMContentLoaded', function () {
-            setTimeout(() => {
-                document.querySelector('.loading-screen').style.display = 'none';
-            }, 1000);
-        });
-
-        document.getElementById('next-button').addEventListener('click', function () {
+        document.getElementById('v1-button').addEventListener('click', function () {
             document.cookie = "issuer_init=false; path=/; max-age=3600";
             document.cookie = "user_init=false; path=/; max-age=3600";
             document.cookie = "vc_result=false; path=/; max-age=3600";
-            setPage('user_info.html');
+            setPage('v1.0.0.0/index.html');
+        });
+
+        document.getElementById('v2-button').addEventListener('click', function () {
+            document.cookie = "issuer_init=false; path=/; max-age=3600";
+            document.cookie = "user_init=false; path=/; max-age=3600";
+            document.cookie = "vc_result=false; path=/; max-age=3600";
+            setPage('v2.0.0.0/index.html');
+        });
+
+        let currentLang = "en"; // default language
+
+        document.querySelectorAll('.guide-icon').forEach(icon => {
+        icon.addEventListener('click', function () {
+            const docPath = this.getAttribute('data-doc');
+            const fullUrl = `${window.location.origin}/did-demo-app/${docPath}`;
+
+            const loadGuide = () => {
+            const mdFile = currentLang === "ko" ? "demoapp_guide_ko.md" : "demoapp_guide.md";
+
+            fetch(fullUrl + mdFile)
+                .then(res => res.text())
+                .then(md => {
+                let html = marked.parse(md);
+                html = html.replace(/<img\s+[^>]*src=["'](?!https?:\/\/)(\.\/)?images\/([^"']+)["']/gi, (match, _, filename) => {
+                    return match.replace(/src=["'][^"']+["']/, `src="${fullUrl}images/${filename}"`);
+                });
+                document.getElementById("md-content").innerHTML = html;
+                document.getElementById("md-modal").style.display = "block";
+                })
+                .catch(err => {
+                console.error("Failed to load markdown:", err);
+                alert("Failed to load the demo guide.");
+                });
+            };
+
+            loadGuide();
+
+            const langSelect = document.getElementById("lang-select");
+            langSelect.value = "en";
+            langSelect.onchange = function () {
+            currentLang = this.value;
+            loadGuide();
+            };
+        });
+        });
+
+        document.addEventListener("click", (e) => {
+        if (
+            e.target.matches(".md-close-button") ||
+            e.target.matches(".md-modal-backdrop")
+        ) {
+            document.getElementById("md-modal").style.display = "none";
+        }
         });
     </script>
 </body>

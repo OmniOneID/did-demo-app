@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/config.js"></script>
+    <script src="js/version.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            flex-direction: column;
+            /* justify-content: space-between; */
+            position: relative;
+            display: flex;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 10px;
+        }
+        .header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 10px;
+        }
+
+        .header .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ed8202;
+            margin: 0 20 0 0;
+            padding-bottom: 0;
+            text-align: left;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            color: #ed8202;
+            margin: 0 0 0 0;
+            padding-right: 20px;
+            text-align: right;
+        }
+        .subtitle-with-icon {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 20px;
+            margin-top: 2px;
+        }
+
+        .subtitle-with-icon .subtitle {
+            margin: 0 0 0 2px;
+            font-size: 14px;
+            color: #ed8202;
+            text-align: right;
+        }
+
+        .eye-icon {
+            width: 18px;
+            height: 18px;
+        }
+        .subject {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px 15px 0 15px;
+        }
+
+        .subject .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ed8202;
+            margin: 0 0 0 0;
+            text-align: left;
+        }
+        
+        .list-view {
+            width: 100%;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            margin: 10px 0;
+            padding: 0 15px 0 15px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .list-item .text-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-item .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+        }
+
+        .list-item .subtitle {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .list-item img {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .button-container {
+            padding: 10px 0;
+            text-align: center;
+            margin: 20px 0;
+            background-color: #ffffff;
+        }
+
+        .button-container button {
+            width: 160px;
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        #ok-button {
+            color: #ffffff;
+            background-color: #ed8202;
+        }
+
+        #ok-button:hover {
+            background-color: #d37102;
+        }
+
+        #cancel-button {
+            color: #ed8202;
+            background-color: #ffffff;
+            border: 2px solid #ed8202;
+        }
+
+        #cancel-button:hover {
+            background-color: #f5f5f5;
+        }
+        .container-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #version-bar {
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 12px;
+            width: 375px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }        
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <div class="mobile-container">
+            <div class="header">
+                <p class="title">ZKP submission selection</p>
+                <div class="subtitle-with-icon">
+                    <img src="image/eye_open.png" alt="eye icon" class="eye-icon">
+                    <p class="subtitle">Tap the image to hide or show attributes</p>
+                </div>
+            </div>
+            <div class="content-area">
+                <div class="subject">
+                    <p class="title">Attributes</p>
+                </div>
+                <ul class="list-view">
+                    <li class="list-item">
+                        <div class="text-group">
+                            <div class="title">region</div>
+                            <div class="subtitle">seoul</div>
+                        </div>
+                        <img src="image/eye_close.png" alt="icon" class="toggle-eye">
+                    </li>
+                    <li class="list-item">
+                        <div class="text-group">
+                            <div class="title">name</div>
+                            <div class="subtitle">Raon Kim</div>
+                        </div>
+                        <img src="image/eye_close.png" alt="icon" class="toggle-eye">
+                    </li>
+                    <li class="list-item">
+                        <div class="text-group">
+                            <div class="title">citizenship</div>
+                            <div class="subtitle">citizen</div>
+                        </div>
+                        <img src="image/eye_open.png" alt="icon" class="toggle-eye">
+                    </li>
+                </ul>
+                <div class="subject">
+                    <p class="title">Predicates</p>
+                </div>
+                <ul class="list-view">
+                    <li class="list-item">
+                        <div class="text-group">
+                            <div class="title">birthdate</div>
+                            <div class="subtitle">20200101</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="button-container">
+                <button id="cancel-button">CANCEL</button>
+                <button id="ok-button">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/zkp_submission_select';
+        history.replaceState(state, null, url);
+
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            setPage('main.html');
+        });
+
+        document.getElementById('ok-button').addEventListener('click', function() {
+            setPage('verify_result.html');
+        });
+
+        document.querySelectorAll('.toggle-eye').forEach(img => {
+        img.addEventListener('click', () => {
+            // const isOpen = img.src.includes('eye_open.png');
+            // img.src = isOpen ? 'image/eye_close.png' : 'image/eye_open.png';
+            const isOpen = img.src.includes(getBasePath() + 'image/eye_open.png');
+            img.src = isOpen ? getBasePath() + 'image/eye_close.png' : getBasePath() + 'image/eye_open.png';            
+        });
+    });
+    </script>
+</body>
+</html>
