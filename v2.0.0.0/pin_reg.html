@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/config.js"></script>
+    <script src="js/version.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 667px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .header {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            color: #aaaaaa;
+            margin-bottom: 20px;
+        }
+
+        .header .pin-input {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 160px;
+            margin-top: 60px;
+        }
+
+        .header .pin-input div {
+            width: 60px;
+            height: 60px;
+            border-bottom: 2px solid #aaaaaa;
+            text-align: center;
+            font-size: 48px;
+            line-height: 48px;
+            margin: 0 5px;
+        }
+
+        .main {
+            flex: 4;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 2px;
+            padding: 30px 60px;
+            justify-content: center;
+            align-content: center;
+        }
+
+        .main button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #aaaaaa;
+            color: #ffffff;
+            font-size: 30px;
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        .main button.del {
+            background-color: #cccccc;
+            touch-action: manipulation;
+        }
+
+        .main button.x {
+            background-color: #cccccc;
+            touch-action: manipulation;
+        }
+
+        .footer {
+            flex: 1;
+            text-align: center;
+            padding: 30px 10px 30px 20px;
+        }
+
+        .container-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #version-bar {
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 12px;
+            width: 375px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }        
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <div class="mobile-container">
+            <div class="header">
+                <h1 id="title">Please register a PIN</h1>
+                <div class="pin-input">
+                    <div id="pin1"></div>
+                    <div id="pin2"></div>
+                    <div id="pin3"></div>
+                    <div id="pin4"></div>
+                    <div id="pin5"></div>
+                    <div id="pin6"></div>
+                </div>
+            </div>
+            <div class="main">
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button class="x">X</button>
+                <button>0</button>
+                <button class="del">&#8592;</button>
+            </div>
+            <div class="footer"></div>
+        </div>
+    </div>
+
+    <script>
+        window.onpopstate = function(e) { 
+            console.log(`${JSON.stringify(e.state)} | ${location.origin} | ${location.pathname}`);
+        }
+
+        var state = {};
+        var url = location.origin + '/pin_registration';
+        history.pushState(state, null, url);
+
+        const pinInput = document.querySelectorAll('.pin-input div');
+        const buttons = document.querySelectorAll('.main button');
+        const title = document.getElementById('title');
+        let pinIndex = 0;
+        let pinValue = "";
+        let storedPin = "";
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+        }
+
+        let isProcessing = false;
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (isProcessing) return;
+
+                if (button.classList.contains('del')) {
+                    if (pinIndex > 0) {
+                        pinInput[--pinIndex].textContent = '';
+                        pinInput[pinIndex].style.borderBottom = '2px solid #aaaaaa';
+                    }
+                    pinValue = pinValue.slice(0, -1);
+                } else if (button.classList.contains('x')) {
+                    pinInput.forEach(pin => {
+                        pin.textContent = '';
+                        pin.style.borderBottom = '2px solid #aaaaaa';
+                    });
+                    pinIndex = 0;
+                    pinValue = "";
+                } else {
+                    if (pinIndex < 6) {
+                        pinInput[pinIndex].textContent = '•';
+                        pinInput[pinIndex].style.color = '#ed8202';
+                        pinInput[pinIndex].style.fontSize = '32px';
+                        pinInput[pinIndex].style.borderBottom = 'none';
+                        pinValue += button.textContent;
+                        pinIndex++;
+                    }
+
+                    if (pinIndex === 6) {
+                        isProcessing = true;
+                        setTimeout(() => {
+                            if (!storedPin) {
+                                setCookie('userPin', pinValue, 1);
+                                storedPin = pinValue;
+                                title.textContent = 'Please input a PIN';
+                                setTimeout(() => {
+                                    pinInput.forEach(pin => {
+                                        pin.textContent = '';
+                                        pin.style.borderBottom = '2px solid #aaaaaa';
+                                    });
+                                    pinIndex = 0;
+                                    pinValue = "";
+                                    isProcessing = false;
+                                }, 500);
+                            } else {
+                                if (pinValue === storedPin) {
+                                    setPage('finger_popup.html');
+                                } else {
+                                    title.textContent = 'PIN does not match';
+                                    deleteCookie('userPin');
+                                    storedPin = "";
+                                    setTimeout(() => {
+                                        title.textContent = 'Please register a PIN';
+                                        pinInput.forEach(pin => {
+                                            pin.textContent = '';
+                                            pin.style.borderBottom = '2px solid #aaaaaa';
+                                        });
+                                        pinIndex = 0;
+                                        pinValue = "";
+                                        isProcessing = false;
+                                    }, 500);
+                                }
+                            }
+                        }, 300);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
