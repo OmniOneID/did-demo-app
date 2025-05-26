@@ -295,9 +295,6 @@
             setPage('add_vc.html');
         });
 
-        // document.getElementById('scan-qr-button').addEventListener('click', function() {
-        //     setPage('qr_scan_vc.html');
-        // });
         document.getElementById('scan-qr-button').addEventListener('click', function() {
             const issuerInit = getCookieValue('issuer_init');
             const userInit = getCookieValue('user_init');
@@ -307,6 +304,8 @@
             console.log("vcResult : " + vcResult);
 
             if (userInit  === 'false' && issuerInit === 'true' && vcResult === 'true') {
+                setPage('qr_scan_proof.html');
+            } else if (userInit  === 'true' && issuerInit === 'false' && vcResult === 'true'){
                 setPage('qr_scan_vp.html');
             } else if (userInit  === 'true' && issuerInit === 'true' && vcResult === 'true'){
                 setPage('select_qr.html');
