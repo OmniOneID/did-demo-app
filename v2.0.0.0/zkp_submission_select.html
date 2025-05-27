@@ -212,7 +212,7 @@
                     <li class="list-item">
                         <div class="text-group">
                             <div class="title">name</div>
-                            <div class="subtitle">Raon Kim</div>
+                            <div class="subtitle" id="name"></div>
                         </div>
                         <img src="image/eye_close.png" alt="icon" class="toggle-eye">
                     </li>
@@ -221,7 +221,7 @@
                             <div class="title">citizenship</div>
                             <div class="subtitle">citizen</div>
                         </div>
-                        <img src="image/eye_open.png" alt="icon" class="toggle-eye">
+                        <img src="image/eye_close.png" alt="icon" class="toggle-eye">
                     </li>
                 </ul>
                 <div class="subject">
@@ -259,6 +259,16 @@
         document.getElementById('ok-button').addEventListener('click', function() {
             setPage('verify_result.html');
         });
+
+        function getCookieValue(name) {
+            const cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                const [key, value] = cookies[i].split('=');
+                if (key === name) return decodeURIComponent(value);
+            }
+            return null;
+        }
+        document.getElementById('name').textContent = (getCookieValue('first_name') || '') + ' ' + (getCookieValue('last_name') || '');
 
         document.querySelectorAll('.toggle-eye').forEach(img => {
         img.addEventListener('click', () => {

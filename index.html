@@ -237,10 +237,10 @@
             loadGuide();
 
             const langSelect = document.getElementById("lang-select");
-            langSelect.value = "en";
+            langSelect.value = currentLang;
             langSelect.onchange = function () {
-            currentLang = this.value;
-            loadGuide();
+                currentLang = this.value;
+                loadGuide();
             };
         });
         });
