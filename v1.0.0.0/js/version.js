@@ -57,7 +57,7 @@
         overflow-y: auto;
         transform: translate(-50%, -50%);
         background: #fff;
-        padding: 20px;
+        padding: 60px 20px 20px 20px;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         font-family: Arial, sans-serif;
