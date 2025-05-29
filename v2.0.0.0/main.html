@@ -118,11 +118,17 @@
             margin: 5px 0;
         }
 
+        .info-box .details .vc,
         .info-box .details .zkp {
-            font-size: 13px;
-            color: #555;
+            font-size: 12px;
+            color: #ed8202;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 6px 12px;
+            display: inline-block;
+            text-align: center;
+            border: 1px solid #ed8202;
             margin: 5px 0;
-            text-align: left;
         }
 
         .button-container {
@@ -195,7 +201,10 @@
                         <p class="title">OpenDID Mobile Driving License</p>
                         <p class="validdate" id="valid-until-mdl"></p>
                         <p class="issuedate" id="issued-date-mdl"></p>
-                        <p class="zkp">ZKP included</p>
+                    <div style="display: flex; gap: 8px;">
+                        <p class="vc">VC</p>
+                        <p class="zkp">ZKP</p>
+                    </div>
                     </div>
                 </div>
                 
@@ -205,6 +214,9 @@
                         <p class="title">OpenDID National ID</p>
                         <p class="validdate" id="valid-until-nid"></p>
                         <p class="issuedate" id="issued-date-nid"></p>
+                    <div style="display: flex; gap: 8px;">
+                        <p class="vc">VC</p>
+                    </div>
                     </div>
                 </div>
                 
