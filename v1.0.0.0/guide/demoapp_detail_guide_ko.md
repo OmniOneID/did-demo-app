@@ -110,7 +110,7 @@
 ## issue_result
 <img src="./images/issue_result.png" width="600" height="500"/>
 
-- VC 발급 완료룰 사용자에게 확인합니다.
+- VC 발급 완료를 사용자에게 확인합니다.
 
 
 ## scan_qr_vp
@@ -135,7 +135,7 @@
 ## verify_result
 <img src="./images/verify_result.png" width="600" height="500"/>
 
-- VP 제출 완료룰 사용자에게 확인합니다.
+- VP 제출 완료를 사용자에게 확인합니다.
 
 
 ## detail_mdl
@@ -154,7 +154,7 @@
 ## issue_result
 <img src="./images/issue_result.png" width="600" height="500"/>
 
-- VC 발급 완료룰 사용자에게 확인합니다.
+- VC 발급 완료를 사용자에게 확인합니다.
 
 
 

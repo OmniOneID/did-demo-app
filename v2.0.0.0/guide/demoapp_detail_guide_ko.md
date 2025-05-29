@@ -112,7 +112,7 @@
 ## issue_result
 <img src="./images/issue_result.png" width="600" height="500"/>
 
-- VC 발급 완료룰 사용자에게 확인합니다.
+- VC 발급 완료를 사용자에게 확인합니다.
 
 ## select_qr
 <img src="./images/select_qr.png" width="600" height="500"/>
@@ -143,7 +143,7 @@
 ## verify_result
 <img src="./images/verify_result.png" width="600" height="500"/>
 
-- 제출 완료룰 사용자에게 확인합니다.
+- 제출 완료를 사용자에게 확인합니다.
 
 
 ## scan_qr_proof
@@ -185,7 +185,7 @@
 ## issue_result
 <img src="./images/issue_result.png" width="600" height="500"/>
 
-- VC 발급 완료룰 사용자에게 확인합니다.
+- VC 발급 완료를 사용자에게 확인합니다.
 
 
 
