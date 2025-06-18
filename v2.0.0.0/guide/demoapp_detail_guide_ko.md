@@ -61,7 +61,8 @@
 <img src="./images/main2.png" width="600" height="500"/>
 
 - VC가 발급된 경우에는 VC 목록이 화면에 표시됩니다.
-- 본데모에서는 mDL에 ZKP Credential이 포함되어 있기때문에 포함여부도 확인 할 수 있습니다. 
+- 본데모에서는 mDL에 ZKP Credential이 포함되어 있기때문에 포함여부도 확인 할 수 있습니다.
+- VC상태에 따라서 ACTIVE, INACTIVE, REVOKED의 세가지 상태가 있는데 본데모에서는 ACTIVE 상태만 표시합니다. 
 
 - 하단에는 다음 두 개의 버튼이 존재합니다:
   - ADD VC: 사용자 주도(User Initiated) 방식으로 VC를 발급합니다.
