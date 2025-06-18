@@ -85,6 +85,23 @@
             color: #888888;
         }
 
+        .main .details {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .main .details .active {
+            font-size: 12px;
+            color: #ed8202;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 6px 12px;
+            display: inline-block;
+            text-align: center;
+            border: 1px solid #ed8202;
+            margin: 5px 0;
+        }
+
         .button-container {
             text-align: center;
             margin: 20px 0;
@@ -149,6 +166,9 @@
             </div>
             
             <div class="main" style="max-height: 400px; overflow-y: auto;">
+                <div class="details">
+                    <p class="active">ACTIVE</p>
+                </div>
                 <p><b><font color="#ed8202">Verifiable Credential</font></b></p>
                 <p><b>Family Name</b></p>
                 <p id="last-name"></p>
