@@ -57,7 +57,8 @@
 <img src="./images/main2.png" width="600" height="500"/>
 
 - Once VCs are issued, they are displayed in a list.
-- This demo includes mDL with ZKP Credential, allowing confirmation of its inclusion.  
+- This demo includes mDL with ZKP Credential, allowing confirmation of its inclusion.
+- There are three possible VC statuses: ACTIVE, INACTIVE, and REVOKED, but this demo only displays the ACTIVE status.
 
 - Two buttons are available at the bottom:
   - ADD VC: Issues VC through User Initiated method.  
