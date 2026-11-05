@@ -1,0 +1,1787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Proximity Verifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes popIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.7; } }
+  @keyframes scanLine {
+    0% { top: 24px; }
+    50% { top: calc(100% - 28px); }
+    100% { top: 24px; }
+  }
+  .stage { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+
+
+const Icon = ({ d, size = 24, color = 'currentColor', stroke = 1.8, fill = 'none', children }) =>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color}
+    strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color }}>
+    {d ? <path d={d} /> : children}
+  </svg>;
+
+const IcMenu = (p) => <Icon {...p}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></Icon>;
+const IcBack = (p) => <Icon {...p}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></Icon>;
+const IcClose = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></Icon>;
+const IcChevR = (p) => <Icon {...p}><polyline points="9 6 15 12 9 18" /></Icon>;
+const IcChevD = (p) => <Icon {...p}><polyline points="6 9 12 15 18 9" /></Icon>;
+const IcChevU = (p) => <Icon {...p}><polyline points="6 15 12 9 18 15" /></Icon>;
+const IcCheck = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12" /></Icon>;
+const IcAlert = (p) => <Icon {...p}><path d="M12 3.5L1.8 20.5h20.4L12 3.5z" /><line x1="12" y1="10" x2="12" y2="14" /><circle cx="12" cy="17.2" r="0.9" fill="currentColor" stroke="none" /></Icon>;
+const IcQR = (p) => <Icon {...p}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM20 14v3M14 20h3M17 17h4v4" /></Icon>;
+const IcNfc = (p) => <Icon {...p} fill="currentColor" stroke={0}
+  d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H4V4h16v16zM18 6h-5c-1.1 0-2 .9-2 2v2.28c-.6.35-1 .98-1 1.72 0 1.1.9 2 2 2s2-.9 2-2c0-.74-.4-1.38-1-1.72V8h3v8H8V8h2V6H6v12h12V6z" />;
+
+const IcDrag = (p) => <Icon {...p}><line x1="4" y1="9" x2="20" y2="9" /><line x1="4" y1="15" x2="20" y2="15" /></Icon>;
+const IcGear = (p) => <Icon {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></Icon>;
+
+Object.assign(window, {
+  Icon, IcMenu, IcBack, IcClose, IcChevR, IcChevD, IcChevU, IcCheck,
+  IcAlert, IcQR, IcNfc, IcDrag, IcGear,
+});
+
+const C = {
+  primary: '#7C4DBE',
+  primaryLight: '#A98AD8',
+  primaryDark: '#5B3590',
+  primaryPale: '#F2EAFA',
+  bg: '#FAFAFA',
+  surface: '#FAFAFA',
+  textPri: '#000000',
+  textSec: '#676666',
+  divider: '#EEEEEE',
+  success: '#3F8B5A',
+  warning: '#C18430',
+  error: '#B83C3C',
+  blue50: '#E8EDF6',
+  blue700: '#3F5C8D',
+  gray100: '#F5F5F5',
+  gray200: '#EEEEEE',
+  gray300: '#E0E0E0',
+  gray500: '#9E9E9E',
+  gray700: '#676666'
+};
+
+const FONT = `'Pretendard', 'Pretendard Variable', system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif`;
+
+const MONO = `'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+
+const APP_VERSION = '2026.05.6-Public';
+
+function PrimaryBtn({ children, onClick, disabled, style }) {
+  const [pressed, setPressed] = React.useState(false);
+  const release = () => setPressed(false);
+  const press = () => { if (!disabled) setPressed(true); };
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseDown={press} onMouseUp={release} onMouseLeave={release}
+      onTouchStart={press} onTouchEnd={release} onTouchCancel={release}
+      disabled={disabled}
+      style={{
+        width: '100%', height: 52, borderRadius: 12, border: 'none',
+        background: disabled ? '#DDD0EF' : pressed ? C.primaryDark : C.primary,
+        color: '#fff', fontSize: 16, fontWeight: 600, fontFamily: FONT,
+        cursor: disabled ? 'default' : 'pointer', letterSpacing: 0.3,
+        boxShadow: disabled ? 'none' : pressed
+          ? 'inset 0 2px 6px rgba(0,0,0,0.18)'
+          : '0 2px 6px rgba(124, 77, 190, 0.30)',
+        transition: 'background 120ms ease, box-shadow 120ms ease',
+        ...style
+      }}>{children}</button>
+  );
+}
+
+function OutlineBtn({ children, onClick, color = C.primary, disabled, style }) {
+  const [pressed, setPressed] = React.useState(false);
+  const release = () => setPressed(false);
+  const press = () => { if (!disabled) setPressed(true); };
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseDown={press} onMouseUp={release} onMouseLeave={release}
+      onTouchStart={press} onTouchEnd={release} onTouchCancel={release}
+      disabled={disabled}
+      style={{
+        width: '100%', height: 52, borderRadius: 12,
+        border: `1.5px solid ${disabled ? C.gray300 : color}`,
+        background: pressed ? `${color}1A` : 'transparent',
+        color: disabled ? C.gray500 : color, fontSize: 16, fontWeight: 600, fontFamily: FONT,
+        cursor: disabled ? 'default' : 'pointer', letterSpacing: 0.3,
+        boxShadow: pressed ? `inset 0 2px 6px ${color}26` : 'none',
+        transition: 'background 120ms ease, box-shadow 120ms ease',
+        ...style
+      }}>{children}</button>
+  );
+}
+
+function TextBtn({ children, onClick, color = C.primary, style }) {
+  const [pressed, setPressed] = React.useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      style={{
+        width: '100%', height: 48, borderRadius: 12, border: 'none',
+        background: pressed ? `${color}14` : 'transparent',
+        color, fontSize: 16, fontWeight: 600, fontFamily: FONT, cursor: 'pointer',
+        transition: 'background 120ms ease', ...style
+      }}>{children}</button>
+  );
+}
+
+function AppBar({ left, title, right, onLeft, onRight, bg }) {
+  const gradient = !!title;
+  const bgValue = bg || (gradient ? C.primary : C.bg);
+  const fg = gradient ? '#fff' : C.textPri;
+  const tintIcon = (el) =>
+    gradient && React.isValidElement(el)
+      ? React.cloneElement(el, { color: '#fff' })
+      : el;
+  return (
+    <div style={{
+      height: 56, display: 'flex', alignItems: 'center', padding: '0 8px',
+      background: bgValue, position: 'relative', flexShrink: 0
+    }}>
+      <div onClick={onLeft} style={{
+        width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: onLeft ? 'pointer' : 'default', borderRadius: 20
+      }}>{tintIcon(left)}</div>
+      <div style={{
+        position: 'absolute', left: 0, right: 0, textAlign: 'center',
+        fontSize: 17, fontWeight: 600, color: fg, fontFamily: FONT,
+        pointerEvents: 'none'
+      }}><span style={{ pointerEvents: 'auto' }}>{title}</span></div>
+      <div style={{ flex: 1 }} />
+      <div onClick={onRight} style={{
+        width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        ...(onRight && { cursor: 'pointer', borderRadius: 20 })
+      }}>{tintIcon(right)}</div>
+    </div>
+  );
+}
+
+function StatusBar() {
+  return (
+    <div style={{
+      height: 36, padding: '0 18px 0 22px', display: 'flex',
+      alignItems: 'center', justifyContent: 'space-between',
+      fontFamily: FONT, fontSize: 14, fontWeight: 600,
+      color: C.textPri, background: C.bg, flexShrink: 0
+    }}>
+      <span>9:41</span>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 11L0 3.5C4.5 -0.6 11.5 -0.6 16 3.5L8 11z" fill="#212121" /></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11"><path d="M1 6h2v4H1zM5 4h2v6H5zM9 2h2v8H9zM13 0h2v10h-2z" fill="#212121" /></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11"><rect x="0.5" y="0.5" width="20" height="10" rx="2" fill="none" stroke="#212121" /><rect x="2" y="2" width="15" height="7" rx="1" fill="#212121" /><rect x="21" y="3" width="2" height="5" rx="1" fill="#212121" /></svg>
+      </div>
+    </div>
+  );
+}
+
+function Phone({ children, w = 380, h = 820 }) {
+  return (
+    <div style={{
+      width: w, height: h, borderRadius: 44, padding: 10,
+      background: '#1a1a1a', boxShadow: '0 30px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05)',
+      position: 'relative', flexShrink: 0
+    }}>
+      <div data-phone-screen="true" style={{
+        width: '100%', height: '100%', borderRadius: 34, overflow: 'hidden',
+        background: C.bg, position: 'relative', display: 'flex', flexDirection: 'column'
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function HomeIndicator() {
+  return (
+    <div style={{
+      height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#fff', borderTop: `1px solid ${C.divider}`, flexShrink: 0
+    }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#1a1a1a', opacity: 0.4 }} />
+    </div>
+  );
+}
+
+function Spinner({ size = 32, color = C.primary, trackColor = '#E0E0E0', frozen = false }) {
+  const dotSize = Math.max(4, Math.round(size * 0.18));
+  const dots = Array.from({ length: 8 });
+  const dotInner = {
+    position: 'absolute', top: 0, left: '50%', marginLeft: -dotSize / 2,
+    width: dotSize, height: dotSize, borderRadius: '50%'
+  };
+  return (
+    <div style={{ width: size, height: size, position: 'relative', display: 'inline-block' }}>
+      {dots.map((_, i) =>
+        <div key={i} style={{ position: 'absolute', inset: 0, transform: `rotate(${i * 45}deg)` }}>
+          <div style={{ ...dotInner, background: trackColor }} />
+        </div>
+      )}
+      <div style={{
+        position: 'absolute', inset: 0,
+        transform: frozen ? 'rotate(90deg)' : undefined,
+        animation: frozen ? undefined : 'spin 1s steps(8) infinite'
+      }}>
+        <div style={{ ...dotInner, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+function CenterDialog({ children, onDismiss }) {
+  return (
+    <div onClick={onDismiss} style={{
+      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.42)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 40, animation: 'fadeIn 160ms ease', padding: 28
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: '#fff', borderRadius: 18, padding: '24px 22px 20px',
+        fontFamily: FONT, animation: 'popIn 180ms cubic-bezier(.2,.8,.3,1)',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+        display: 'flex', flexDirection: 'column', gap: 10
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function BottomSheet({ items, onClose, title, description, select }) {
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+      display: 'flex', alignItems: 'flex-end', zIndex: 50,
+      animation: 'fadeIn 200ms'
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', background: '#fff', borderRadius: '20px 20px 0 0',
+        padding: '12px 0 24px', animation: 'slideUp 300ms ease-out', fontFamily: FONT
+      }}>
+        <div style={{
+          width: 40, height: 4, background: C.gray300, borderRadius: 2,
+          margin: '0 auto 16px'
+        }} />
+        {title && (
+          <div style={{
+            padding: `0 24px ${description ? 4 : 12}px`,
+            fontSize: 18, fontWeight: 600, color: C.textPri, fontFamily: FONT
+          }}>{title}</div>
+        )}
+        {description && (
+          <div style={{
+            padding: '0 24px 12px', fontSize: 13, color: C.textSec,
+            fontFamily: FONT, lineHeight: 1.5
+          }}>{description}</div>
+        )}
+        {items.map((it, i) => (
+          <div key={i} onClick={it.onClick} style={{
+            display: 'flex', alignItems: 'center', gap: 16, padding: '16px 24px',
+            cursor: 'pointer', borderTop: i === 0 ? 'none' : `1px solid ${C.divider}`,
+            background: select && it.selected ? C.primaryPale : 'transparent'
+          }}>
+            {!select && (
+              <div style={{
+                width: 40, height: 40, borderRadius: 10, background: C.primaryPale,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>{it.icon}</div>
+            )}
+            <div style={{ flex: 1, fontSize: 16, color: C.textPri, fontFamily: FONT, fontWeight: 500 }}>
+              {it.label}
+            </div>
+            {select
+              ? (it.selected
+                  ? <IcCheck size={20} color={C.primary} stroke={2.5} />
+                  : <div style={{ width: 20 }} />)
+              : <IcChevR size={20} color={C.primary} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ children, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px 8px' }}>
+      <div style={{ width: 4, height: 16, borderRadius: 2, background: '#C6ADE6' }} />
+      <div style={{
+        fontSize: 13, fontWeight: 700, color: C.textPri,
+        fontFamily: FONT, letterSpacing: -0.1
+      }}>{children}</div>
+      {right && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>{right}</div>}
+    </div>
+  );
+}
+
+function Card({ children, style, bordered = false, pad }) {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 16,
+      border: bordered ? `1px solid ${C.divider}` : 'none',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+      overflow: 'hidden', padding: pad,
+      ...style
+    }}>{children}</div>
+  );
+}
+
+function ListRow({ icon, label, onClick, last }) {
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 14, padding: 16,
+      cursor: onClick ? 'pointer' : 'default',
+      borderBottom: last ? 'none' : `1px solid ${C.divider}`
+    }}>
+      {icon}
+      <div style={{ flex: 1, fontSize: 15, color: C.textPri, fontFamily: FONT, fontWeight: 500 }}>
+        {label}
+      </div>
+      <IcChevR size={20} color={C.primary} />
+    </div>
+  );
+}
+
+function ValueRow({ title, value, onClick, last }) {
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 14, padding: 16,
+      cursor: onClick ? 'pointer' : 'default',
+      borderBottom: last ? 'none' : `1px solid ${C.divider}`
+    }}>
+      <div style={{ flex: 1, minWidth: 0, fontFamily: FONT }}>
+        <div style={{ fontSize: 15, color: C.textPri, fontWeight: 500, lineHeight: 1.3 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 13, color: C.textSec, marginTop: 3, lineHeight: 1.3 }}>
+          {value}
+        </div>
+      </div>
+      <IcChevR size={20} color={C.primary} />
+    </div>
+  );
+}
+
+function CheckBox({ on, size = 22 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size > 20 ? 6 : 5,
+      border: `1.5px solid ${on ? C.primary : C.gray300}`,
+      background: on ? C.primary : '#fff', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'all 150ms'
+    }}>
+      {on && <IcCheck size={size > 20 ? 14 : 12} color="#fff" stroke={3} />}
+    </div>
+  );
+}
+
+function GroupHead({ label, isFirst, rightSlot }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      padding: isFirst ? '8px 0 4px' : '14px 0 4px',
+      borderTop: isFirst ? 'none' : `1px solid ${C.divider}`
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 800, letterSpacing: 0.6,
+        textTransform: 'uppercase', color: C.textSec, fontFamily: FONT
+      }}>{label}</div>
+      {rightSlot}
+    </div>
+  );
+}
+
+function CountBadge({ n }) {
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 700, fontFamily: FONT,
+      background: C.primaryPale, color: C.primaryDark,
+      padding: '3px 9px', borderRadius: 999, letterSpacing: 0.2, flexShrink: 0
+    }}>{n}</span>
+  );
+}
+
+function SelectAll({ allOn, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6,
+      cursor: 'pointer', userSelect: 'none'
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.primary, fontFamily: FONT }}>
+        Select all
+      </div>
+      <CheckBox on={allOn} size={18} />
+    </div>
+  );
+}
+
+function AttrRow({ label, checked, onToggle, isLast }) {
+  return (
+    <div onClick={onToggle} style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0',
+      cursor: onToggle ? 'pointer' : 'default',
+      borderBottom: isLast ? 'none' : `1px solid ${C.divider}`
+    }}>
+      <div style={{ flex: 1, fontSize: 14, color: C.textPri, fontFamily: FONT }}>{label}</div>
+      <CheckBox on={checked} />
+    </div>
+  );
+}
+
+function KVRow({ label, value, note, isLast, danger, rawLabel }) {
+  return (
+    <div style={{
+      padding: '10px 0', borderBottom: isLast ? 'none' : `1px solid ${C.divider}`,
+      fontFamily: FONT
+    }}>
+      <div style={{
+        fontSize: 11, color: C.textSec, fontWeight: 500,
+        letterSpacing: 0.3, textTransform: rawLabel ? 'none' : 'uppercase'
+      }}>{label}</div>
+      <div style={{
+        fontSize: 14, color: danger ? C.error : C.textPri, marginTop: 3,
+        lineHeight: 1.5, whiteSpace: 'pre-line', overflowWrap: 'anywhere',
+        fontWeight: danger ? 700 : 400
+      }}>{value}</div>
+      {note && (
+        <div style={{
+          fontSize: 12.5, color: C.textSec, marginTop: 2, lineHeight: 1.5
+        }}>{note}</div>
+      )}
+    </div>
+  );
+}
+
+function KVGroupRow({ label, items, isLast }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{
+      borderBottom: isLast ? 'none' : `1px solid ${C.divider}`, fontFamily: FONT
+    }}>
+      <div onClick={() => setOpen(!open)} style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 0', cursor: 'pointer'
+      }}>
+        {open ? <IcChevU size={18} color={C.primary} /> : <IcChevD size={18} color={C.primary} />}
+        <div style={{
+          flex: 1, fontSize: 11, color: C.textSec, fontWeight: 500,
+          letterSpacing: 0.3, textTransform: 'uppercase'
+        }}>{label}</div>
+      </div>
+      {open && (
+        <div style={{ paddingLeft: 26, paddingBottom: 2 }}>
+          {items.map(([l, v], i) => (
+            <KVRow key={l} label={l} value={v} isLast={i === items.length - 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Chip({ label, selected, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: selected ? '9px 14px 9px 11px' : '9px 14px',
+      borderRadius: 10, cursor: 'pointer', fontFamily: FONT,
+      fontSize: 14, fontWeight: selected ? 600 : 500,
+      background: selected ? C.primary : '#fff',
+      color: selected ? '#fff' : C.textPri,
+      border: `1.5px solid ${selected ? C.primary : C.gray300}`,
+      transition: 'all 150ms'
+    }}>
+      {selected && <IcCheck size={15} color="#fff" stroke={3} />}
+      {label}
+    </button>
+  );
+}
+
+function Toggle({ on, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{
+      width: 46, height: 26, borderRadius: 13, flexShrink: 0, cursor: 'pointer',
+      background: on ? C.primary : C.gray300,
+      display: 'flex', alignItems: 'center',
+      justifyContent: on ? 'flex-end' : 'flex-start',
+      padding: 3, transition: 'background 140ms ease'
+    }}>
+      <div style={{
+        width: 20, height: 20, borderRadius: 10, background: '#fff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.22)'
+      }} />
+    </div>
+  );
+}
+
+function SettingRow({ title, on, onToggle, last }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 16, padding: 16,
+      borderBottom: last ? 'none' : `1px solid ${C.divider}`, fontFamily: FONT
+    }}>
+      <div style={{
+        flex: 1, minWidth: 0,
+        fontSize: 15, fontWeight: 500, color: C.textPri, lineHeight: 1.3
+      }}>{title}</div>
+      <Toggle on={on} onToggle={onToggle} />
+    </div>
+  );
+}
+
+function ChoiceRow({ title, caption, children, footer, last }) {
+  return (
+    <div style={{
+      padding: 16, fontFamily: FONT,
+      borderBottom: last ? 'none' : `1px solid ${C.divider}`
+    }}>
+      <div style={{ fontSize: 15, fontWeight: 500, color: C.textPri, lineHeight: 1.3 }}>{title}</div>
+      {caption && (
+        <div style={{ fontSize: 12.5, color: C.textSec, lineHeight: 1.5, marginTop: 4 }}>{caption}</div>
+      )}
+      <div style={{ marginTop: 12 }}>{children}</div>
+      {footer && (
+        <div style={{
+          marginTop: 10, fontSize: 12.5, fontWeight: 600, color: C.primaryDark,
+          lineHeight: 1.5, letterSpacing: -0.1
+        }}>{footer}</div>
+      )}
+    </div>
+  );
+}
+
+const TRANSPORT_ROW_H = 52;
+
+function transportSummary(order) {
+  const names = order.map((id) => (TRANSPORTS.find((t) => t.id === id) || {}).label);
+  if (names.length === 0) return '';
+  if (names.length === 1) return `Only ${names[0]} is used.`;
+  return names.join('  →  ');
+}
+
+function TransportList({ order, onChange, dragPose }) {
+  const [drag, setDrag] = React.useState(null);
+  const startRef = React.useRef(null);
+  const active = drag || dragPose || null;
+  const offIds = TRANSPORTS.map((t) => t.id).filter((id) => !order.includes(id));
+  const rows = order.concat(offIds);
+
+  const toggle = (id) => {
+    if (!order.includes(id)) { onChange && onChange(order.concat(id)); return; }
+    if (order.length === 1) return;
+    onChange && onChange(order.filter((x) => x !== id));
+  };
+
+  const onDown = (e, index) => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    startRef.current = { y: e.clientY, index };
+    setDrag({ index, dy: 0 });
+  };
+
+  const onMove = (e) => {
+    const st = startRef.current;
+    if (!st) return;
+    const shift = Math.round((e.clientY - st.y) / TRANSPORT_ROW_H);
+    const to = Math.max(0, Math.min(order.length - 1, st.index + shift));
+    let list = order, base = st;
+    if (to !== st.index) {
+      const next = order.slice();
+      next.splice(to, 0, next.splice(st.index, 1)[0]);
+      onChange && onChange(next);
+      list = next;
+      base = { y: st.y + (to - st.index) * TRANSPORT_ROW_H, index: to };
+      startRef.current = base;
+    }
+    const lo = -base.index * TRANSPORT_ROW_H;
+    const hi = (list.length - 1 - base.index) * TRANSPORT_ROW_H;
+    setDrag({ index: base.index, dy: Math.max(lo, Math.min(hi, e.clientY - base.y)) });
+  };
+
+  const onUp = () => { startRef.current = null; setDrag(null); };
+
+  return (
+    <div style={{
+      borderRadius: 12, border: `1px solid ${C.divider}`,
+      background: '#fff', overflow: 'hidden', position: 'relative'
+    }}>
+      {rows.map((id, rowIdx) => {
+        const t = TRANSPORTS.find((x) => x.id === id) || {};
+        const i = order.indexOf(id);
+        const enabled = i >= 0;
+        const lifted = enabled && !!active && active.index === i;
+        const lockedOn = enabled && order.length === 1;
+        return (
+          <div key={id} style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            height: TRANSPORT_ROW_H, padding: '0 8px 0 14px', fontFamily: FONT,
+            background: '#fff', position: 'relative',
+            borderBottom: rowIdx === rows.length - 1 ? 'none' : `1px solid ${C.divider}`,
+            zIndex: lifted ? 2 : 1,
+            transform: lifted ? `translateY(${active.dy}px)` : 'none',
+            boxShadow: lifted ? '0 4px 14px rgba(0,0,0,0.16)' : 'none'
+          }}>
+            <div onClick={() => toggle(id)} style={{
+              display: 'flex', alignItems: 'center',
+              cursor: lockedOn ? 'default' : 'pointer',
+              opacity: lockedOn ? 0.45 : 1
+            }}>
+              <CheckBox on={enabled} />
+            </div>
+            {enabled ? (
+              <div style={{
+                width: 22, height: 22, borderRadius: 11, flexShrink: 0,
+                background: C.primaryPale, color: C.primaryDark,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11.5, fontWeight: 700
+              }}>{i + 1}</div>
+            ) : <div style={{ width: 22, flexShrink: 0 }} />}
+            <div style={{
+              flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 500,
+              color: enabled ? C.textPri : C.gray500
+            }}>{t.label}</div>
+            {enabled ? (
+              <div onPointerDown={(e) => onDown(e, i)} onPointerMove={onMove}
+                onPointerUp={onUp} onPointerCancel={onUp}
+                style={{
+                  padding: '12px 8px', cursor: 'grab', touchAction: 'none',
+                  display: 'flex', alignItems: 'center'
+                }}>
+                <IcDrag size={20} color={C.gray500} />
+              </div>
+            ) : <div style={{ width: 36, flexShrink: 0 }} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BottomBar({ children }) {
+  return (
+    <div style={{
+      padding: '12px 16px 16px', borderTop: `1px solid ${C.divider}`,
+      flexShrink: 0, background: C.surface, display: 'flex', gap: 10
+    }}>{children}</div>
+  );
+}
+
+const sampleQrCells = [];
+for (let r = 0; r < 25; r++) {
+  for (let c = 0; c < 25; c++) {
+    const finder = r < 8 && c < 8 || r < 8 && c > 16 || r > 16 && c < 8;
+    if (!finder && Math.sin(r * 7.3 + c * 3.1) + Math.cos(r * 1.7 + c * 5.9) > 0.2) sampleQrCells.push([r, c]);
+  }
+}
+
+function ScanCutout({ size = 220, scanning = true }) {
+  const brackets = [
+    { top: 0, left: 0, borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderRadius: '6px 0 0 0' },
+    { top: 0, right: 0, borderTop: '2px solid #fff', borderRight: '2px solid #fff', borderRadius: '0 6px 0 0' },
+    { bottom: 0, left: 0, borderBottom: '2px solid #fff', borderLeft: '2px solid #fff', borderRadius: '0 0 0 6px' },
+    { bottom: 0, right: 0, borderBottom: '2px solid #fff', borderRight: '2px solid #fff', borderRadius: '0 0 6px 0' },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+      width: size, height: size, borderRadius: 8,
+      boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)', pointerEvents: 'none', zIndex: 0
+    }}>
+      {scanning && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ padding: 16, background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: `1px solid ${C.divider}` }}>
+          <svg width={150} height={150} viewBox="0 0 25 25">
+            {sampleQrCells.map(([r, c]) => <rect key={r + '-' + c} x={c} y={r} width="1" height="1" fill="#212121" />)}
+            {[[0, 0], [18, 0], [0, 18]].map(([x, y]) => (
+              <g key={x + '-' + y}>
+                <rect x={x} y={y} width="7" height="7" fill="#212121" />
+                <rect x={x + 1} y={y + 1} width="5" height="5" fill="#fff" />
+                <rect x={x + 2} y={y + 2} width="3" height="3" fill="#212121" />
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>}
+      {scanning && <div style={{
+        position: 'absolute', top: 24, left: 18, right: 18, height: 2, borderRadius: 1,
+        background: C.primary, boxShadow: `0 0 8px 1px ${C.primary}`, opacity: 0.85,
+        animation: 'scanLine 2s ease-in-out infinite'
+      }} />}
+      {brackets.map((s, i) => (
+        <div key={i} style={{ position: 'absolute', width: 44, height: 44, ...s }} />
+      ))}
+    </div>
+  );
+}
+
+Object.assign(window, {
+  C, FONT, MONO, APP_VERSION, PrimaryBtn, OutlineBtn, TextBtn, AppBar, StatusBar,
+  Phone, HomeIndicator, Spinner, CenterDialog, BottomSheet, SectionTitle, Card, ListRow,
+  CheckBox, CountBadge, GroupHead, SelectAll, AttrRow, KVRow, KVGroupRow, Chip, Toggle,
+  SettingRow, ChoiceRow, TransportList, transportSummary, BottomBar, ScanCutout,
+});
+
+const PID_ATTRS = [
+  'Family Name(s)', 'Given Name(s)', 'Birth Date', 'Portrait',
+];
+
+const DOC_GROUPS = [
+  {
+    id: 'pid', title: 'Request PID', doc: 'Personal Identification Data (PID)',
+    customTitle: 'Custom PID request',
+    chipFull: 'Full', chipCustom: 'Custom',
+    short: 'PID',
+    attrs: PID_ATTRS,
+  },
+];
+
+const groupById = (id) => DOC_GROUPS.find((g) => g.id === id);
+
+
+const buildRequestRows = (req) => DOC_GROUPS
+  .filter((g) => req[g.id])
+  .map((g) => [
+    g.short,
+    req[g.id].mode === 'full' ? 'Full' : `${req[g.id].attrs.length} of ${g.attrs.length}`,
+  ]);
+
+const VALIDITY_DATES = [
+  ['Valid from', '03 Nov 2026'],
+  ['Valid until', '03 Nov 2027'],
+];
+
+const TRUSTED_ISSUERS = [
+  { did: 'did:omn:issuer', name: 'OpenDID Issuer', docTypes: ['org.omnione.pid.1'] },
+];
+
+const ISSUER_TRUSTED_VALUES = {
+  yes: `Yes (${TRUSTED_ISSUERS[0].name})`,
+  no: 'No',
+  skipped: 'Skipped',
+};
+
+const ISSUER_NO_REASONS = {
+  unidentified: 'The issuer could not be identified from this credential.',
+  notListed: 'The issuer is not in the trusted issuer list.',
+  docType: 'The issuer is not trusted to issue this document type.',
+  signature: "The issuer's signature could not be verified.",
+};
+
+const DEVICE_AUTH_VALUES = {
+  verified: 'Yes',
+  failed: 'No',
+};
+
+const buildVerificationRows = (issuer, deviceAuth) => [
+  ['Issuer Trusted', ISSUER_TRUSTED_VALUES[issuer]],
+  ['Device Auth', DEVICE_AUTH_VALUES[deviceAuth]],
+  ...VALIDITY_DATES,
+];
+
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad2 = (n) => String(n).padStart(2, '0');
+const formatStamp = (d) =>
+  `${pad2(d.getDate())} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+
+const ISSUERS_UPDATED_AT = '19 Aug 2026 18:11';
+
+const PID_ELEMENTS = {
+  'Family Name(s)': 'family_name', 'Given Name(s)': 'given_name',
+  'Birth Date': 'birth_date', 'Portrait': 'portrait',
+};
+
+const PORTRAIT_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">' +
+'<rect width="100" height="120" fill="#ffffff"/>' +
+'<g fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+'<path d="M50 10 C33 10 24 24 24 42 C24 62 34 80 50 80 C66 80 76 62 76 42 C76 24 67 10 50 10 Z"/>' +
+'<path d="M25 40 C21 39 19 43 21 47 C22 50 25 51 26 50"/>' +
+'<path d="M75 40 C79 39 81 43 79 47 C78 50 75 51 74 50"/>' +
+'<path d="M34 38 C37 35 42 35 45 37"/>' +
+'<path d="M66 38 C63 35 58 35 55 37"/>' +
+'<path d="M35 45 C38 42 43 42 46 45 C43 48 38 48 35 45 Z"/>' +
+'<path d="M65 45 C62 42 57 42 54 45 C57 48 62 48 65 45 Z"/>' +
+'<circle cx="40.5" cy="45" r="1.8" fill="#000000" stroke="none"/>' +
+'<circle cx="59.5" cy="45" r="1.8" fill="#000000" stroke="none"/>' +
+'<path d="M50 49 L50 58 C50 60 48 61 46 60"/>' +
+'<path d="M44 66 L56 66"/>' +
+'<path d="M43 70 C46 72 54 72 57 70"/>' +
+'<path d="M38 79 C38 90 30 96 20 101"/>' +
+'<path d="M62 79 C62 90 70 96 80 101"/>' +
+'</g></svg>');
+
+const portraitEl = (src) =>
+  <img src={src} alt="portrait image" style={{
+    display: 'block', marginTop: 5,
+    width: 33, height: 40,
+    maxWidth: '100%', objectFit: 'contain', objectPosition: 'left top'
+  }} />;
+
+const toDocs = (docs) => docs.map((d) => ({
+  doctype: d.doctype,
+  claims: d.claims.map(([l, v, img]) => [l, img ? portraitEl(img) : v])
+}));
+
+const RETURNED_DOCS = [
+  {
+    doctype: 'org.omnione.pid.1',
+    claims: [
+      ['family_name', 'Kim'],
+      ['given_name', 'Raon'],
+      ['birth_date', '1992-03-12'],
+      ['portrait', portraitEl(PORTRAIT_IMG)],
+    ],
+  },
+];
+
+Object.assign(window, {
+  PID_ATTRS, DOC_GROUPS, groupById, buildRequestRows,
+  VALIDITY_DATES, ISSUER_TRUSTED_VALUES, ISSUER_NO_REASONS, DEVICE_AUTH_VALUES, buildVerificationRows,
+  RETURNED_DOCS, TRUSTED_ISSUERS,
+  formatStamp, ISSUERS_UPDATED_AT,
+});
+
+const { useState, useEffect } = React;
+
+function RequestGroups({ draft = {}, onPickFull, onPickCustom }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {DOC_GROUPS.map((g) => {
+        const sel = draft[g.id];
+        return (
+          <div key={g.id}>
+            <SectionTitle>{g.title}</SectionTitle>
+            <Card pad={16}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <Chip label={g.chipFull} selected={sel?.mode === 'full'}
+                  onClick={() => onPickFull && onPickFull(g.id)} />
+                <Chip label={g.chipCustom} selected={sel?.mode === 'custom'}
+                  onClick={() => onPickCustom && onPickCustom(g.id)} />
+              </div>
+              {sel?.mode === 'custom' && (
+                <div style={{
+                  marginTop: 12, fontSize: 12.5, color: C.textSec, fontFamily: FONT
+                }}>
+                  {sel.attrs.length} of {g.attrs.length} attributes selected
+                </div>
+              )}
+            </Card>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ScrHome({ go, request = {}, onPickFull, onClearGroup, sheet = false }) {
+  const hasRequest = DOC_GROUPS.some((g) => request[g.id]);
+  const [open, setOpen] = useState(sheet);
+
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.surface, position: 'relative'
+    }}>
+      <AppBar onLeft={() => go('settings')} left={<IcMenu size={24} />} title="Proximity Verifier" />
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px' }}>
+        <RequestGroups draft={request} onPickFull={onPickFull}
+          onPickCustom={(gid) => {
+            if (request[gid]?.mode === 'custom') { onClearGroup && onClearGroup(gid); return; }
+            go('customAttrs', { groupId: gid });
+          }} />
+      </div>
+      <BottomBar>
+        <PrimaryBtn disabled={!hasRequest} onClick={() => setOpen(true)}>Start Verification</PrimaryBtn>
+      </BottomBar>
+
+      {open && (
+        <BottomSheet
+          title="Device engagement method"
+          description="Choose how to start the session with the holder's device."
+          onClose={() => setOpen(false)}
+          items={[
+            { label: 'Scan QR', icon: <IcQR size={22} color={C.primary} />,
+              onClick: () => { setOpen(false); go('deviceEngagement'); } },
+            { label: 'Tap NFC', icon: <IcNfc size={22} color={C.primary} />,
+              onClick: () => { setOpen(false); go('nfcEngagement'); } },
+          ]} />
+      )}
+    </div>
+  );
+}
+
+const TRANSPORTS = [
+  { id: 'ble', label: 'BLE' },
+  { id: 'wifiAware', label: 'Wi-Fi Aware' },
+  { id: 'nfc', label: 'NFC' },
+];
+const DEFAULT_TRANSPORT_ORDER = TRANSPORTS.map((t) => t.id);
+
+const BLE_MODE_OPTS = [
+  { id: 'central', label: 'Central client mode' },
+  { id: 'peripheral', label: 'Peripheral server mode' },
+];
+
+const BLE_MODE_DEFAULT = 'peripheral';
+
+const SETTINGS_DEFAULT = {
+  skipIssuerAuth: true,
+  transportOrder: DEFAULT_TRANSPORT_ORDER,
+  bleMode: BLE_MODE_DEFAULT,
+  useL2cap: false,
+};
+
+const SETTINGS_META = [
+  {
+    group: 'General',
+    rows: [
+      { key: 'trustedIssuers', title: 'Trusted Issuers', nav: 'trustedIssuers' },
+      { key: 'skipIssuerAuth', title: 'Skip issuer verification' },
+    ],
+  },
+  {
+    group: 'Transport',
+    rows: [
+      { key: 'transportOrder', kind: 'transport', title: 'Transports to use' },
+    ],
+  },
+  {
+    group: 'Data retrieval options',
+    rows: [
+      { key: 'bleMode', kind: 'blemode', title: 'BLE Transfer Mode' },
+      { key: 'useL2cap', title: 'Use BLE L2CAP if available' },
+    ],
+  },
+];
+
+function ScrSettings({ go, settings = SETTINGS_DEFAULT, onToggle, onChange, dragPose, sheet = false }) {
+  const order = settings.transportOrder || DEFAULT_TRANSPORT_ORDER;
+  const bleMode = settings.bleMode || BLE_MODE_DEFAULT;
+  const [bleSheet, setBleSheet] = useState(sheet);
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.surface, position: 'relative'
+    }}>
+      <AppBar onLeft={() => go('back')} left={<IcBack size={24} />} title="Settings" />
+      <div style={{
+        flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 20
+      }}>
+        {SETTINGS_META.map((sec) => (
+          <div key={sec.group}>
+            <SectionTitle>{sec.group}</SectionTitle>
+            <Card bordered>
+              {sec.rows.map((r, i) => {
+                const last = i === sec.rows.length - 1;
+                if (r.kind === 'blemode') {
+                  return (
+                    <ValueRow key={r.key} last={last} title={r.title}
+                      value={(BLE_MODE_OPTS.find((o) => o.id === bleMode) || {}).label}
+                      onClick={() => setBleSheet(true)} />
+                  );
+                }
+                if (r.kind === 'transport') {
+                  return (
+                    <ChoiceRow key={r.key} last={last} title={r.title}
+                      caption="Enabled transports are tried in order. Drag the handle to change the order."
+                      footer={transportSummary(order)}>
+                      <TransportList order={order} dragPose={dragPose}
+                        onChange={(next) => onChange && onChange(r.key, next)} />
+                    </ChoiceRow>
+                  );
+                }
+                return r.nav ? (
+                  <ListRow key={r.key} label={r.title}
+                    onClick={() => go(r.nav)} last={last} />
+                ) : (
+                  <SettingRow key={r.key} title={r.title}
+                    on={!!settings[r.key]}
+                    onToggle={() => onToggle && onToggle(r.key)}
+                    last={last} />
+                );
+              })}
+            </Card>
+          </div>
+        ))}
+      </div>
+
+      {bleSheet && (
+        <BottomSheet
+          select
+          title="BLE Transfer Mode"
+          description="Preferred BLE role for this reader. Applied only when the holder advertises both modes."
+          onClose={() => setBleSheet(false)}
+          items={BLE_MODE_OPTS.map((o) => ({
+            label: o.label,
+            selected: o.id === bleMode,
+            onClick: () => {
+              if (onChange) onChange('bleMode', o.id);
+              setBleSheet(false);
+            },
+          }))} />
+      )}
+    </div>
+  );
+}
+
+function TrustedIssuersEmpty() {
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', padding: 32
+    }}>
+      <div style={{
+        fontSize: 18, fontWeight: 700, color: C.textPri, fontFamily: FONT,
+        marginBottom: 8, letterSpacing: -0.2
+      }}>
+        No Trusted Issuers yet
+      </div>
+      <div style={{
+        textAlign: 'center', fontSize: 14, color: C.textSec, fontFamily: FONT,
+        lineHeight: 1.6, maxWidth: 260
+      }}>
+        Tap <span style={{ color: C.primary, fontWeight: 600 }}>Refresh Trusted Issuers</span> below
+        to fetch the registry.
+      </div>
+    </div>
+  );
+}
+
+function ScrTrustedIssuers({ go, issuers = [], refreshing = false, updatedAt, onRefresh }) {
+  const has = issuers.length > 0;
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.surface, position: 'relative'
+    }}>
+      <AppBar onLeft={() => go('back')} left={<IcBack size={24} />} title="Trusted Issuers"
+        right={<IcGear size={24} />} onRight={() => go('serverUrl')} />
+      {has ? (
+        <div style={{
+          flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px',
+          display: 'flex', flexDirection: 'column', gap: 20
+        }}>
+          <div>
+            <SectionTitle right={<CountBadge n={issuers.length} />}>Cached Issuers</SectionTitle>
+            {updatedAt && (
+              <div style={{
+                fontSize: 12.5, color: C.textSec, fontFamily: FONT,
+                padding: '0 4px 8px', marginTop: -4
+              }}>Last updated: {updatedAt}</div>
+            )}
+            <Card bordered>
+              <div style={{ padding: '4px 16px' }}>
+                {issuers.map(({ did, name }, i) => (
+                  <div key={did} style={{
+                    padding: '12px 0',
+                    borderBottom: i === issuers.length - 1 ? 'none' : `1px solid ${C.divider}`
+                  }}>
+                    {name && (
+                      <div style={{
+                        fontFamily: FONT, fontSize: 14, fontWeight: 600, lineHeight: 1.4,
+                        color: C.textPri, marginBottom: 2
+                      }}>{name}</div>
+                    )}
+                    <div style={{
+                      fontFamily: MONO, fontSize: 12.5, lineHeight: 1.55,
+                      color: C.textSec, wordBreak: 'break-all'
+                    }}>{did}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      ) : (
+        <TrustedIssuersEmpty />
+      )}
+      <BottomBar>
+        <PrimaryBtn disabled={refreshing} onClick={onRefresh}>Refresh Trusted Issuers</PrimaryBtn>
+      </BottomBar>
+
+      {refreshing && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 50,
+          background: 'rgba(0,0,0,0.5)', padding: 24,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 24
+        }}>
+          <Spinner size={48} color={C.primary} />
+          <div style={{
+            fontSize: 13, color: 'rgba(255,255,255,0.85)', fontFamily: FONT, textAlign: 'center'
+          }}>
+            Please wait a moment
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SERVER_URL_DEFAULT = {
+  base: 'http://localhost',
+  endpoints: [
+    { key: 'TAS_URL', label: 'TAS', port: 8090 },
+    { key: 'API_GW_URL', label: 'API Gateway', port: 8093 }]
+};
+
+const serverUrlDefaults = () =>
+  SERVER_URL_DEFAULT.endpoints.reduce((acc, e) => {
+    acc[e.key] = `${SERVER_URL_DEFAULT.base}:${e.port}`;
+    return acc;
+  }, {});
+
+const SERVER_URL_RE = /^(https?):\/\/([^\s\/:]+)(?::(\d+))?(\/\S*)?$/;
+
+const validateServerUrl = (v) => {
+  const t = (v || '').trim();
+  if (!t) return 'Enter a URL.';
+  const m = t.match(SERVER_URL_RE);
+  if (!m) return 'Enter a valid URL starting with http:// or https://.';
+  if (m[3] !== undefined) {
+    const n = Number(m[3]);
+    if (n < 1 || n > 65535) return 'Port must be between 1 and 65535.';
+  }
+  return null;
+};
+
+const sameCustom = (a, b) => {
+  const ka = Object.keys(a);
+  return ka.length === Object.keys(b).length && ka.every((k) => a[k] === b[k]);
+};
+
+const normalizeServerUrl = (v) => {
+  let t = v.trim();
+  while (t.length > 1 && t.endsWith('/')) t = t.slice(0, -1);
+  return t;
+};
+
+const normalizeServerCustom = (c) =>
+  Object.fromEntries(Object.entries(c).map(([k, v]) => [k, normalizeServerUrl(v)]));
+
+const serverUrlChanged = (a, b) => {
+  const d = serverUrlDefaults();
+  return SERVER_URL_DEFAULT.endpoints.some((e) => (a[e.key] ?? d[e.key]) !== (b[e.key] ?? d[e.key]));
+};
+
+function TextField({ value, onChange, placeholder, error, readOnly, disabled, style }) {
+  const [focused, setFocused] = useState(false);
+  const borderColor = error ? C.error : disabled ? C.divider : focused ? C.primary : C.divider;
+  return (
+    <div style={{ ...style }}>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        readOnly={readOnly || disabled}
+        onChange={(e) => onChange && onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        spellCheck={false}
+        autoComplete="off"
+        style={{
+          width: '100%', height: 48, boxSizing: 'border-box',
+          padding: '0 14px', borderRadius: 12,
+          border: `1px solid ${borderColor}`,
+          background: disabled ? C.gray100 : '#fff',
+          color: disabled ? C.textSec : C.textPri,
+          fontSize: 14, fontFamily: FONT,
+          outline: 'none', cursor: disabled ? 'default' : 'text',
+          transition: 'border-color 120ms ease, background 120ms ease, color 120ms ease'
+        }} />
+      {error && (
+        <div style={{ marginTop: 6, fontSize: 12, color: C.error, fontFamily: FONT, lineHeight: 1.4 }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ServerUrlRowBtn({ children, onClick, muted, disabled }) {
+  const color = disabled ? C.gray500 : muted ? C.textSec : C.primary;
+  return (
+    <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
+      flexShrink: 0, height: 32, padding: '0 12px', borderRadius: 8,
+      border: `1px solid ${disabled || muted ? C.gray300 : C.primary}`,
+      background: 'transparent', color, fontSize: 13, fontWeight: 600,
+      fontFamily: FONT, cursor: onClick && !disabled ? 'pointer' : 'default'
+    }}>{children}</button>
+  );
+}
+
+function ScrServerUrl({ go, preview, saved = {}, onSave }) {
+  const defaults = serverUrlDefaults();
+  const readOnly = !!preview;
+
+  const seedCustom = () => {
+    if (preview === 'edited') return { TAS_URL: 'http://localhost:8090' };
+    if (preview === 'invalid') return { TAS_URL: 'htp://localhost:8090' };
+    return { ...saved };
+  };
+  const [custom, setCustom] = useState(seedCustom);
+  const [errors, setErrors] = useState(() =>
+    preview === 'invalid' ? { TAS_URL: 'Enter a valid URL starting with http:// or https://.' } : {});
+
+  const customList = SERVER_URL_DEFAULT.endpoints.filter((e) => custom[e.key] !== undefined);
+  const defaultList = SERVER_URL_DEFAULT.endpoints.filter((e) => custom[e.key] === undefined);
+  const dirty = !sameCustom(custom, saved);
+  const hasError = customList.some((e) => !!errors[e.key]);
+
+  const toCustom = (key) => {
+    setCustom((c) => ({ ...c, [key]: defaults[key] }));
+    setErrors((er) => ({ ...er, [key]: null }));
+  };
+  const toDefault = (key) => {
+    setCustom((c) => { const n = { ...c }; delete n[key]; return n; });
+    setErrors((er) => ({ ...er, [key]: null }));
+  };
+  const allToCustom = () => { setCustom((c) => ({ ...defaults, ...c })); setErrors({}); };
+  const allToDefault = () => { setCustom({}); setErrors({}); };
+  const setUrl = (key, v) => {
+    setCustom((c) => ({ ...c, [key]: v }));
+    setErrors((er) => ({ ...er, [key]: validateServerUrl(v) }));
+  };
+
+  const onBack = () => go('back');
+  const card = {
+    background: '#fff', border: `1px solid ${C.divider}`, borderRadius: 14, padding: '4px 14px'
+  };
+  const emptyNote = {
+    padding: '14px 0', fontSize: 13, color: C.textSec, fontFamily: FONT, lineHeight: 1.45, textAlign: 'left'
+  };
+  const rowLabel = { fontSize: 13, fontWeight: 600, color: C.textPri, fontFamily: FONT };
+
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.surface, position: 'relative'
+    }}>
+      <AppBar onLeft={onBack} left={<IcBack size={24} />} title="Server URL" />
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <SectionTitle right={
+            <ServerUrlRowBtn muted disabled={customList.length === 0} onClick={readOnly ? undefined : allToDefault}>All Default</ServerUrlRowBtn>
+          }>Custom</SectionTitle>
+          <div style={card}>
+            {customList.length === 0 && (
+              <div style={emptyNote}>No custom endpoints.<br />Tap Custom on an endpoint below to edit it.</div>
+            )}
+            {customList.map((e, i) => (
+              <div key={e.key} style={{
+                padding: '12px 0',
+                borderBottom: i < customList.length - 1 ? `1px solid ${C.divider}` : 'none'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8 }}>
+                  <div style={rowLabel}>{e.label}</div>
+                  <ServerUrlRowBtn muted onClick={readOnly ? undefined : () => toDefault(e.key)}>Default</ServerUrlRowBtn>
+                </div>
+                <TextField value={custom[e.key]} error={errors[e.key]} readOnly={readOnly}
+                  onChange={(v) => setUrl(e.key, v)} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <SectionTitle right={
+            <ServerUrlRowBtn disabled={defaultList.length === 0} onClick={readOnly ? undefined : allToCustom}>All Custom</ServerUrlRowBtn>
+          }>Default</SectionTitle>
+          <div style={card}>
+            {defaultList.length === 0 && (
+              <div style={emptyNote}>All endpoints are set to custom.</div>
+            )}
+            {defaultList.map((e, i) => (
+              <div key={e.key} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0',
+                borderBottom: i < defaultList.length - 1 ? `1px solid ${C.divider}` : 'none'
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={rowLabel}>{e.label}</div>
+                  <div style={{
+                    marginTop: 4, fontSize: 13, color: C.textSec, fontFamily: FONT,
+                    lineHeight: 1.4, wordBreak: 'break-all'
+                  }}>{defaults[e.key]}</div>
+                </div>
+                <ServerUrlRowBtn onClick={readOnly ? undefined : () => toCustom(e.key)}>Custom</ServerUrlRowBtn>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <BottomBar>
+        <OutlineBtn onClick={onBack}>Cancel</OutlineBtn>
+        <PrimaryBtn disabled={!dirty || hasError}
+          onClick={() => (onSave ? onSave(custom) : go('back'))}>Save</PrimaryBtn>
+      </BottomBar>
+    </div>
+  );
+}
+
+function ScrCustomAttrs({ go, groupId = 'pid', initial, onCommit }) {
+  const g = groupById(groupId);
+  const [picked, setPicked] = useState(() => initial === undefined ? g.attrs.slice() : initial.slice());
+  const [open, setOpen] = useState(true);
+  const allOn = picked.length === g.attrs.length;
+  const toggleAll = () => setPicked(allOn ? [] : g.attrs.slice());
+  const toggle = (a) => setPicked((p) => p.includes(a) ? p.filter((x) => x !== a) : [...p, a]);
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: C.surface }}>
+      <AppBar onLeft={() => go('back')} left={<IcBack size={24} />} title={g.customTitle} />
+      <div style={{
+        flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 20
+      }}>
+        <div>
+          <SectionTitle>Requested Attributes</SectionTitle>
+          <Card style={{ padding: open ? '4px 16px 12px' : '4px 16px' }}>
+            <div onClick={() => setOpen((o) => !o)} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '12px 0', cursor: 'pointer'
+            }}>
+              {open ? <IcChevU size={20} color={C.primary} /> : <IcChevD size={20} color={C.primary} />}
+              <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: C.textPri, fontFamily: FONT }}>
+                {g.doc}
+              </div>
+            </div>
+            {open && (
+              <div style={{ paddingLeft: 12 }}>
+                <GroupHead label="Attributes" isFirst
+                  rightSlot={<SelectAll allOn={allOn} onClick={toggleAll} />} />
+                {g.attrs.map((a, i) => (
+                  <AttrRow key={a} label={a} checked={picked.includes(a)}
+                    onToggle={() => toggle(a)} isLast={i === g.attrs.length - 1} />
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+      <BottomBar>
+        <OutlineBtn onClick={() => go('back')}>Cancel</OutlineBtn>
+        <PrimaryBtn disabled={picked.length === 0}
+          onClick={() => { onCommit && onCommit(groupId, picked); go('back'); }}>Done</PrimaryBtn>
+      </BottomBar>
+    </div>
+  );
+}
+
+function ScrDeviceEngagement({ go, permission = 'granted' }) {
+  const denied = permission === 'denied';
+  useEffect(() => {
+    if (denied) return;
+    const t = setTimeout(() => go('transferStatus'), 2200);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, position: 'relative',
+      display: 'flex', flexDirection: 'column',
+      background: '#2a2a2a', overflow: 'hidden'
+    }}>
+      <ScanCutout scanning={!denied} />
+
+      <div style={{
+        position: 'relative', zIndex: 1,
+        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+        padding: '0 16px', flexShrink: 0
+      }}>
+        <div onClick={(e) => { e.stopPropagation(); go('back'); }} style={{
+          width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', borderRadius: 20
+        }}>
+          <IcClose size={26} color="#fff" />
+        </div>
+      </div>
+
+      <div style={{
+        position: 'relative', zIndex: 1,
+        textAlign: 'center', color: '#fff', fontSize: 22, fontWeight: 600,
+        fontFamily: FONT, marginTop: 4
+      }}>
+        Device Engagement
+      </div>
+
+      <div style={{
+        position: 'absolute', left: 0, right: 0, top: 'calc(50% + 130px)',
+        zIndex: 1, textAlign: 'center', color: '#fff', fontSize: 14, fontFamily: FONT, opacity: 0.9
+      }}>
+        Please scan the QR code inside the square.
+      </div>
+
+      {denied && (
+        <CenterDialog>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.textPri, fontFamily: FONT }}>Error</div>
+          <div style={{ fontSize: 14, color: C.textSec, fontFamily: FONT, lineHeight: 1.5 }}>
+            Camera access is required to scan the QR code. Enable the camera permission in system settings and try again.
+          </div>
+          <div style={{ marginTop: 4 }}>
+            <PrimaryBtn onClick={() => go('back')}>OK</PrimaryBtn>
+          </div>
+        </CenterDialog>
+      )}
+    </div>
+  );
+}
+
+function ScrNfcEngagement({ go, permission = 'granted' }) {
+  const denied = permission === 'denied';
+
+  return (
+    <div style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.surface, position: 'relative'
+    }}>
+      <AppBar onLeft={() => go('back')} left={<IcBack size={24} />} title="Device Engagement" />
+      <div style={{
+        flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 30, padding: '0 34px'
+      }}>
+        <div style={{
+          position: 'relative', width: 152, height: 152,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%', background: C.primaryPale,
+            animation: denied ? 'none' : 'pulse 1800ms ease-in-out infinite'
+          }} />
+          <div style={{
+            position: 'relative', zIndex: 1,
+            width: 106, height: 106, borderRadius: '50%', background: '#fff',
+            border: `2px solid ${C.primary}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <IcNfc size={46} color={C.primary} />
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.textPri, fontFamily: FONT }}>
+            Ready to tap
+          </div>
+          <div style={{
+            fontSize: 14, color: C.textSec, fontFamily: FONT,
+            lineHeight: 1.5, marginTop: 10
+          }}>
+            Hold the holder’s device to the back of this phone.
+          </div>
+        </div>
+      </div>
+      <BottomBar>
+        <OutlineBtn onClick={() => go('back')}>Cancel</OutlineBtn>
+      </BottomBar>
+
+      {denied && (
+        <CenterDialog>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.textPri, fontFamily: FONT }}>Error</div>
+          <div style={{ fontSize: 14, color: C.textSec, fontFamily: FONT, lineHeight: 1.5 }}>
+            NFC is required to start this session. Enable NFC in system settings and try again.
+          </div>
+          <div style={{ marginTop: 4 }}>
+            <PrimaryBtn onClick={() => go('back')}>OK</PrimaryBtn>
+          </div>
+        </CenterDialog>
+      )}
+    </div>
+  );
+}
+
+function ReqRow({ label, scope, isLast }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      padding: '12px 0', borderBottom: isLast ? 'none' : `1px solid ${C.divider}`,
+      fontFamily: FONT
+    }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: C.textPri }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: C.textSec }}>{scope}</div>
+    </div>
+  );
+}
+
+function ScrTransferStatus({ go, request = {}, status = 'Connecting...' }) {
+  const rows = buildRequestRows(request);
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: C.surface }}>
+      <AppBar onLeft={() => go('home')} left={<IcBack size={24} />} title="Transfer Status" />
+      <div style={{
+        flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 20
+      }}>
+        {rows.length > 0 && (
+          <div>
+            <SectionTitle>Request</SectionTitle>
+            <Card bordered pad="4px 16px">
+              {rows.map(([label, scope], i) => (
+                <ReqRow key={label} label={label} scope={scope} isLast={i === rows.length - 1} />
+              ))}
+            </Card>
+          </div>
+        )}
+        <div>
+          <SectionTitle>Connection State</SectionTitle>
+          <Card bordered pad={16}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flexShrink: 0, display: 'flex' }}>
+                <Spinner size={20} color={C.primary} />
+              </div>
+              <div style={{
+                fontSize: 14, fontFamily: FONT, lineHeight: 1.4,
+                color: C.textSec, fontWeight: 500
+              }}>
+                {status}
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+      <BottomBar>
+        <OutlineBtn onClick={() => go('home')}>Cancel</OutlineBtn>
+      </BottomBar>
+    </div>
+  );
+}
+
+function ScrShowDocuments({ go, docs = RETURNED_DOCS, verified = true, issuerReason, skipIssuerAuth = false, deviceAuth = 'verified', scrollTo = 0, attrs }) {
+  const scroller = React.useRef(null);
+  useEffect(() => { if (scroller.current) scroller.current.scrollTop = scrollTo; }, [scrollTo]);
+  const issuer = skipIssuerAuth ? 'skipped' : verified ? 'yes' : 'no';
+  const validity = buildVerificationRows(issuer, deviceAuth);
+  const reason = issuer === 'no' && ISSUER_NO_REASONS[issuerReason];
+  const claimsOf = (doc) => {
+    const want = attrs && attrs[doc.doctype];
+    const ids = want && want.map((a) => PID_ELEMENTS[a] || a);
+    return ids ? doc.claims.filter(([l]) => ids.indexOf(l) >= 0) : doc.claims;
+  };
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: C.surface }}>
+      <AppBar onLeft={() => go('home')} left={<IcBack size={24} />} title="Received Credentials" />
+      <div ref={scroller} style={{
+        flex: 1, minHeight: 0, overflow: 'auto', padding: '20px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 20
+      }}>
+        <div>
+          <SectionTitle>Result</SectionTitle>
+          <Card bordered pad={16}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: C.textPri, fontFamily: FONT }}>
+              Number of credentials returned: {docs.length}
+            </div>
+          </Card>
+        </div>
+
+        {docs.map((doc) => (
+          <div key={doc.doctype}>
+            <SectionTitle>{doc.doctype}</SectionTitle>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Card pad="4px 16px">
+                <GroupHead label="Verification" isFirst />
+                {validity.map(([l, v], i) => (
+                  <KVRow key={l} label={l} value={v} note={i === 0 ? reason : null}
+                    isLast={i === validity.length - 1} />
+                ))}
+              </Card>
+              <Card pad="4px 16px">
+                <GroupHead label="Attributes" isFirst />
+                {claimsOf(doc).map(([l, v], i, arr) => {
+                  const last = i === arr.length - 1;
+                  return Array.isArray(v)
+                    ? <KVGroupRow key={l} label={l} items={v} isLast={last} />
+                    : <KVRow key={l} label={l} value={v} isLast={last} rawLabel />;
+                })}
+              </Card>
+            </div>
+          </div>
+        ))}
+      </div>
+      <BottomBar>
+        <PrimaryBtn onClick={() => go('home')}>OK</PrimaryBtn>
+      </BottomBar>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  RequestGroups, ScrHome, ScrSettings, ScrTrustedIssuers, ScrServerUrl, ScrCustomAttrs,
+  ScrDeviceEngagement, ScrNfcEngagement, ScrTransferStatus, ScrShowDocuments,
+  SETTINGS_DEFAULT, SETTINGS_META,
+  TRANSPORTS, DEFAULT_TRANSPORT_ORDER,
+  BLE_MODE_OPTS, BLE_MODE_DEFAULT,
+});
+
+function App({ onApi, onNav }) {
+  const [stack, setStack] = useState([{ name: 'home' }]);
+  const [request, setRequest] = useState({});
+  const [settings, setSettings] = useState(SETTINGS_DEFAULT);
+  const [issuers, setIssuers] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const [serverCustom, setServerCustom] = useState({});
+
+  const current = stack[stack.length - 1];
+
+  useEffect(() => { if (onNav) onNav(current.name, { request }); }, [current]);
+
+  const go = (name, payload) => {
+    if (name === 'back') {
+      setStack((s) => s.length > 1 ? s.slice(0, -1) : s);
+      return;
+    }
+    if (name === 'home') { setStack([{ name: 'home' }]); return; }
+    setStack((s) => [...s, { name, payload }]);
+  };
+
+  const pickFull = (gid) => setRequest((r) => {
+    const next = { ...r };
+    if (next[gid]?.mode === 'full') delete next[gid];
+    else next[gid] = { mode: 'full' };
+    return next;
+  });
+
+  const clearGroup = (gid) => setRequest((r) => {
+    const next = { ...r };
+    delete next[gid];
+    return next;
+  });
+
+  const commitCustom = (gid, attrs) => setRequest((r) => {
+    const isAll = attrs.length === groupById(gid).attrs.length;
+    return { ...r, [gid]: isAll ? { mode: 'full' } : { mode: 'custom', attrs } };
+  });
+
+  const toggleSetting = (k) => setSettings((s) => ({ ...s, [k]: !s[k] }));
+
+  const setSetting = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
+
+  const refreshIssuers = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setTimeout(() => {
+      setIssuers(TRUSTED_ISSUERS);
+      setUpdatedAt(formatStamp(new Date()));
+      setRefreshing(false);
+    }, 1600);
+  };
+
+  const saveServerUrl = (raw) => {
+    const next = normalizeServerCustom(raw);
+    if (serverUrlChanged(serverCustom, next)) {
+      setIssuers([]);
+      setUpdatedAt(null);
+    }
+    setServerCustom(next);
+    go('back');
+  };
+
+
+  const apiRef = React.useRef({});
+  apiRef.current = {
+    go, setStack, setRequest,
+    replace: (name, payload) => setStack((s) => [...s.slice(0, -1), { name, payload }]),
+    seed: (d) => {
+      if (d.request) setRequest(d.request);
+      if (d.settings) setSettings(d.settings);
+      if (d.stack) setStack(d.stack);
+    } };
+
+  React.useEffect(() => {if (onApi) onApi(apiRef);}, []);
+
+
+  const renderScreen = () => {
+    const c = current;
+    switch (c.name) {
+      case 'home': return <ScrHome go={go} request={request} onPickFull={pickFull} onClearGroup={clearGroup} />;
+      case 'settings':
+        return <ScrSettings go={go} settings={settings}
+          onToggle={toggleSetting} onChange={setSetting} />;
+      case 'trustedIssuers':
+        return <ScrTrustedIssuers go={go} issuers={issuers} refreshing={refreshing}
+          updatedAt={updatedAt} onRefresh={refreshIssuers} />;
+      case 'serverUrl':
+        return <ScrServerUrl go={go} saved={serverCustom} onSave={saveServerUrl} />;
+      case 'customAttrs':
+        return <ScrCustomAttrs go={go} groupId={c.payload?.groupId} onCommit={commitCustom} />;
+      case 'deviceEngagement': return <ScrDeviceEngagement go={go} />;
+      case 'nfcEngagement': return <ScrNfcEngagement go={go} />;
+      case 'transferStatus': return <ScrTransferStatus go={go} request={request} status={c.payload?.status} />;
+      case 'showDocuments': {
+        const dt = c.payload?.doctypes;
+        return <ScrShowDocuments go={go}
+          docs={c.payload?.docs ? toDocs(c.payload.docs) : dt ? RETURNED_DOCS.filter((d) => dt.includes(d.doctype)) : undefined}
+          skipIssuerAuth={settings.skipIssuerAuth}
+          attrs={c.payload?.attrs} />;
+      }
+      default: return <ScrHome go={go} request={request} onPickFull={pickFull} onClearGroup={clearGroup} />;
+    }
+  };
+
+  return (
+    <div className="stage">
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Phone>
+            <StatusBar />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+              {renderScreen()}
+            </div>
+            <HomeIndicator />
+          </Phone>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+</script>
+<script type="text/babel">
+function Bridge() {
+  const apiRef = React.useRef(null);
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const m = e.data;
+      if (e.origin !== location.origin || !m || m.__ix !== 'verifier') return;
+      const a = apiRef.current && apiRef.current.current;
+      if (!a) return;
+      if (m.cmd === 'go') a.go(m.name, m.payload);
+      else if (m.cmd === 'replace') a.replace(m.name, m.payload);
+      else if (m.cmd === 'seed') a.seed(m.data);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ __ix: 'verifier', ev: 'ready' }, location.origin);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+  return (
+    <App
+      onApi={(r) => { apiRef.current = r; }}
+      onNav={(name, data) => window.parent.postMessage({ __ix: 'verifier', ev: 'nav', name, data }, location.origin)} />);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Bridge />);
+</script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDID Wallet</title>
+    <script src="js/version.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .apps {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .container-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #wallet-frame, #verifier-frame {
+            width: 380px;
+            height: 820px;
+            border: 0;
+            display: block;
+        }
+
+        .host:not(.linked) .link,
+        .host:not(.linked) .verifier-col {
+            display: none;
+        }
+
+        .link {
+            width: 140px;
+            height: 820px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .link .cap {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-align: center;
+            line-height: 1.4;
+            min-height: 32px;
+            white-space: pre-line;
+        }
+
+        .link .wire {
+            width: 100%;
+            height: 2px;
+            background: #444;
+            position: relative;
+        }
+
+        .link .wire::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #EF8B34;
+            opacity: 0;
+            transition: opacity 400ms;
+        }
+
+        .link.pulse .wire::after { opacity: 1; transition: opacity 60ms; }
+        .link.from-verifier .wire::after { background: #7C4DBE; }
+        .link.pulse .cap { color: #EF8B34; }
+        .link.pulse.from-verifier .cap { color: #B89AE6; }
+
+        #nfc-sim {
+            margin-top: 12px;
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            border: 1.5px dashed #888;
+            background: transparent;
+            color: #bbb;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #nfc-sim:hover { border-color: #7C4DBE; color: #B89AE6; }
+        #nfc-sim[hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="host">
+        <div class="apps">
+            <div class="container-wrapper">
+                <iframe id="wallet-frame" src="wallet.html?embed=wallet" title="OpenDID Wallet"></iframe>
+            </div>
+            <div class="link" id="link">
+                <div class="cap" id="link-cap"></div>
+                <div class="wire"></div>
+                <button id="nfc-sim" hidden>Simulate NFC tap</button>
+            </div>
+            <div class="verifier-col">
+                <iframe id="verifier-frame" src="verifier.html" title="Proximity Verifier"></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const host = document.querySelector('.host');
+            const frames = { wallet: document.getElementById('wallet-frame'), verifier: document.getElementById('verifier-frame') };
+            const link = document.getElementById('link');
+            const cap = document.getElementById('link-cap');
+            const nfcBtn = document.getElementById('nfc-sim');
+            const PID = {
+                candidate: 'o0',
+                doctype: 'org.omnione.pid.1',
+                elements: { 'Family Name(s)': 'family_name', 'Given Name(s)': 'given_name', 'Birth Date': 'birth_date', 'Portrait': 'portrait' }
+            };
+            let linked = false;
+            let session = null;
+            let walletAt = null;
+            let pulseTimer = null;
+
+            function send(app, msg) {
+                msg.__ix = app;
+                frames[app].contentWindow.postMessage(msg, location.origin);
+            }
+
+            function pulse(text, from) {
+                cap.textContent = text;
+                link.classList.toggle('from-verifier', from === 'verifier');
+                link.classList.add('pulse');
+                clearTimeout(pulseTimer);
+                pulseTimer = setTimeout(function () { link.classList.remove('pulse'); }, 900);
+            }
+
+            function fit() {
+                host.style.zoom = 1;
+                const r = host.getBoundingClientRect();
+                const s = Math.max(0.4, Math.min(1, (window.innerWidth - 24) / r.width, (window.innerHeight - 24) / r.height));
+                host.style.zoom = s;
+            }
+
+            function show() {
+                linked = true;
+                session = null;
+                nfcBtn.hidden = true;
+                host.classList.add('linked');
+                send('verifier', { cmd: 'seed', data: { request: {}, stack: [{ name: 'home' }] } });
+                cap.textContent = 'Wallet is showing\nQR / NFC';
+                fit();
+            }
+
+            function hide() {
+                linked = false;
+                session = null;
+                send('verifier', { cmd: 'seed', data: { request: {}, stack: [{ name: 'home' }] } });
+                host.classList.remove('linked');
+                fit();
+            }
+
+            function onWallet(m) {
+                if (m.ev === 'nav') {
+                    walletAt = m.name;
+                    if (m.name === 'proximity') { show(); return; }
+                    if (!linked) return;
+                    if (m.name === 'vpProgress' && session) cap.textContent = 'Receiving\nthe request';
+                    else if (m.name === 'vpRequest' && session && !session.connected) {
+                        session.connected = true;
+                        send('verifier', { cmd: 'replace', name: 'transferStatus', payload: { status: 'Connected. Waiting for the holder to respond...' } });
+                        pulse('Session connected\nWaiting for holder');
+                    } else if (!session || ['docs', 'docsEmpty', 'splash'].includes(m.name)) hide();
+                } else if (m.ev === 'vp' && linked && session && m.data && m.data.id === PID.candidate) {
+                    send('verifier', { cmd: 'go', name: 'showDocuments', payload: { docs: [{ doctype: PID.doctype, claims: m.data.claims }] } });
+                    pulse('Credential sent\n1 document');
+                }
+            }
+
+            function onVerifier(m) {
+                if (m.ev === 'ready' && linked) show();
+                if (m.ev !== 'nav' || !linked) return;
+                if (m.name === 'home' && session) {
+                    session = null;
+                    cap.textContent = 'Verifier\ncancelled';
+                }
+                nfcBtn.hidden = m.name !== 'nfcEngagement';
+                if (m.name === 'deviceEngagement') cap.textContent = 'Verifier is\nscanning the QR';
+                else if (m.name === 'nfcEngagement') cap.textContent = 'Waiting for\nNFC tap';
+                else if (m.name === 'transferStatus' && !session && walletAt === 'proximity') {
+                    const req = m.data && m.data.request && m.data.request.pid;
+                    if (!req) return;
+                    const picks = req.mode === 'full' ? 'all' : req.attrs.map(function (a) { return PID.elements[a] || a; });
+                    session = { picks: picks };
+                    send('wallet', { cmd: 'go', name: 'vpProgress', payload: {
+                        verifier: 'Proximity Verifier',
+                        candidateIds: [PID.candidate],
+                        requestedClaims: { [PID.candidate]: picks }
+                    } });
+                    pulse('Request sent\nPID ' + (picks === 'all' ? 'Full' : picks.length + ' attributes'), 'verifier');
+                }
+            }
+
+            window.addEventListener('message', function (e) {
+                const m = e.data;
+                if (e.origin !== location.origin || !m) return;
+                if (m.__ix === 'wallet' && e.source === frames.wallet.contentWindow) onWallet(m);
+                else if (m.__ix === 'verifier' && e.source === frames.verifier.contentWindow) onVerifier(m);
+            });
+
+            nfcBtn.addEventListener('click', function () { send('verifier', { cmd: 'go', name: 'transferStatus' }); });
+            window.addEventListener('resize', fit);
+            window.addEventListener('load', fit);
+        })();
+    </script>
+</body>
+</html>

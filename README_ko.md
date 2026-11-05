@@ -14,6 +14,9 @@ DemoApp은 실제 OmniOneID 앱과 유사한 경험을 제공하지만, 다음�
 - 앱과 동일한 **UI 및 동작 과정**을 제공하지만, 실제 데이터를 사용하지 않음
 - **VC 발급 및 VP 제출을 위한 QR 코드**는 실제 발급이 아닌 화면 시뮬레이션으로 대체됨
 - **LockType 설정 및 지문 인증 기능**은 지원하지 않음
+- v3.0.0.0 의 **근접 제출**은 월렛 옆에 표시되는 검증자 앱으로 시뮬레이션되며, 실제 BLE·NFC 데이터 교환은 하지 않음
+- v3.0.0.0 에서 QR 스캔 전에 **데모 전용 선택 팝업**으로 증명서를 고름 (실제 앱에는 이 팝업이 없음)
+- v3.0.0.0 의 **PIN과 발급받은 증명서**는 페이지를 새로고침하거나 앱을 초기화하기 전까지만 유지되며, 월렛의 **Server URL 설정**은 제공하지 않음
 
 ## 주요화면
 - 앱시작화면
@@ -26,8 +29,14 @@ DemoApp은 실제 OmniOneID 앱과 유사한 경험을 제공하지만, 다음�
 
 ## 실제 앱 사용을 원하시나요?
 OmniOneID의 실제 앱을 확인하려면 아래의 공식 저장소를 방문하세요
+
+### 월렛(CA) 앱
 - **Android**: [OmniOneID Android CA Repository](https://github.com/OmniOneID/did-ca-aos.git)
 - **iOS**: [OmniOneID iOS CA Repository](https://github.com/OmniOneID/did-ca-ios.git)
+
+### 근접 검증자 앱
+- **Android**: [OmniOneID Android Proximity Verifier Repository](https://github.com/OmniOneID/did-proximity-verifier-android.git)
+- **iOS**: [OmniOneID iOS Proximity Verifier Repository](https://github.com/OmniOneID/did-proximity-verifier-ios.git)
 
 ## 라이선스
 [Apache 2.0](LICENSE)

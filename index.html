@@ -170,6 +170,10 @@
                     <button id="v2-button">v2.0.0.0</button>
                     <img src="v2.0.0.0/guide/guide_icon.png" alt="guide" class="guide-icon" data-doc= "v2.0.0.0/guide/">
                 </div>
+                <div class="button-with-icon">
+                    <button id="v3-button">v3.0.0.0</button>
+                    <img src="v3.0.0.0/guide/guide_icon.png" alt="guide" class="guide-icon" data-doc="v3.0.0.0/guide/">
+                </div>
             </div>
         </div>
     </div>
@@ -206,6 +210,10 @@
             document.cookie = "user_init=false; path=/; max-age=3600";
             document.cookie = "vc_result=false; path=/; max-age=3600";
             setPage('v2.0.0.0/index.html');
+        });
+
+        document.getElementById('v3-button').addEventListener('click', function () {
+            setPage('v3.0.0.0/index.html');
         });
 
         let currentLang = "en"; // default language
