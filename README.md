@@ -20,11 +20,11 @@ The DemoApp provides a user experience similar to the actual OmniOneID app but w
 ## Key Screens
 - App Start Screen
 
-![Start Screen](https://github.com/OmniOneID/did-demo-app/blob/main/screenshot/demoapp1.png)
+![Start Screen](screenshot/demoapp3_1.png)
 
 - Main Screen
 
-![Main Screen](https://github.com/OmniOneID/did-demo-app/blob/main/screenshot/demoapp2.png)
+![Main Screen](screenshot/demoapp3_2.png)
 
 ## Want to Try the Actual App?
 If you’d like to use the real OmniOneID app, please visit the official repositories below:

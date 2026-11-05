@@ -21,11 +21,11 @@ DemoApp은 실제 OmniOneID 앱과 유사한 경험을 제공하지만, 다음�
 ## 주요화면
 - 앱시작화면
 
-![시작화면](https://github.com/OmniOneID/did-demo-app/blob/main/screenshot/demoapp1.png)
+![시작화면](screenshot/demoapp3_1.png)
 
 - 메인화면
 
-![메인화면](https://github.com/OmniOneID/did-demo-app/blob/main/screenshot/demoapp2.png)
+![메인화면](screenshot/demoapp3_2.png)
 
 ## 실제 앱 사용을 원하시나요?
 OmniOneID의 실제 앱을 확인하려면 아래의 공식 저장소를 방문하세요
